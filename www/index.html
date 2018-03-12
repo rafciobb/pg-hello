@@ -5,9 +5,22 @@
 		<script src="js/pgb.js"></script>
 		<script src="cordova.js"></script>
 	</head>
-	<body onload="init()">
+	<body onload="init()" onload="checkConnection()"> 
+	
 		<h1>Hello World!</h1>
 		<p id="dp"></p>
-		<input type="button" onclick="deviceInfo()" value="Let me introduce myself!">
+		<input type="button" onclick="deviceInfo()" value="Info o urzadzeniu">
+		<input type="button" onclick="pokazImie()" value="Imie">
+		<input type="button" onclick="polaczenie()" value="Sprawdz polaczenie">
+		<input type="button" onclick="navigator.accelerometer.getCurrentAcceleration(onSuccess1, onError)" value="Polozenie">
+		<input type="button" onclick="getContactFields()" value="Pobierz Kontakty">
+		<input type="button" onclick="navigator.contacts.find(fields, onSuccess, onError, options)" value="test kontakty">
+
+
+		<h1>DANE OSOBOWE:</h1>
+		<p style="color:red">Rafal Gajda</p>
+		<p style="color:blue">rafcio.gajda@gmail.com</p>
+		<p style="color:red">KrduIS1011</p>
+		<p style="color:blue">Informatyka Stosowana</p>
 	</body>
 </html>
