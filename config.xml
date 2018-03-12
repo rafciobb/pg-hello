@@ -13,5 +13,10 @@
 	
 	<plugin name="cordova-plugin-device" spec="2.0.1" />
 	<plugin name="cordova-plugin-dialogs" spec="2.0.1" />
+	<plugin name="cordova-plugin-network-information" spec="2.0.1" />
+	<plugin name="cordova-plugin-device-motion" spec="2.0.0" />
+	<plugin name="cordova-plugin-splashscreen" spec="5.0.2" />
+	<plugin name="cordova-plugin-sms" spec="1.0.5" />
+
 
 </widget>
