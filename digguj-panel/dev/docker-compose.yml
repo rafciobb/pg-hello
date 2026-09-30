@@ -1,0 +1,46 @@
+# ─────────────────────────────────────────────────────────────────────────
+#  TEST LOKALNY (Docker Desktop) – ten sam PHP + MySQL co na hostingu.
+#    docker compose -f dev/docker-compose.yml up --build
+#  Panel: http://localhost:3000   login: admin   hasło: testowe-haslo
+#  Hasła poniżej są jawne – to tylko do testów na własnym komputerze.
+# ─────────────────────────────────────────────────────────────────────────
+name: digguj-local
+
+services:
+  db:
+    image: mysql:8.0
+    environment:
+      MYSQL_DATABASE: digguj
+      MYSQL_USER: digguj
+      MYSQL_PASSWORD: digguj-local
+      MYSQL_ROOT_PASSWORD: digguj-root-local
+    volumes:
+      - db-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-udigguj", "-pdigguj-local"]
+      interval: 3s
+      timeout: 5s
+      retries: 40
+
+  web:
+    build: .
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "3000:80"
+    environment:
+      DIGGUJ_DB_HOST: db
+      DIGGUJ_DB_NAME: digguj
+      DIGGUJ_DB_USER: digguj
+      DIGGUJ_DB_PASS: digguj-local
+      DIGGUJ_SETUP_KEY: klucz-testowy-lokalny-123
+      DIGGUJ_BOOTSTRAP_ADMIN_USER: admin
+      DIGGUJ_BOOTSTRAP_ADMIN_PASSWORD: testowe-haslo
+    volumes:
+      - ..:/var/www/html
+      - uploads:/var/www/html/storage/uploads
+
+volumes:
+  db-data:
+  uploads:

@@ -1,6 +1,8 @@
 # Testowanie panelu na własnym komputerze
 
-Całość (panel + baza danych) uruchamia się w Dockerze jedną komendą. Nic nie instalujesz poza Docker Desktop, a po testach możesz wszystko usunąć.
+Całość (PHP + MySQL – tak samo jak na hostingu OVH) uruchamia się w Dockerze jedną komendą. Nic nie instalujesz poza Docker Desktop, a po testach możesz wszystko usunąć.
+
+> Chcesz od razu na hosting? Instrukcja jest w [README.md](README.md#wdrożenie-na-hosting-ovh--krok-po-kroku).
 
 ## 1. Przygotowanie (jednorazowo)
 
@@ -10,24 +12,24 @@ Całość (panel + baza danych) uruchamia się w Dockerze jedną komendą. Nic n
 2. Pobierz kod z gałęzi `claude/epic-knuth-y21dv5`:
    - **bez gita:** otwórz https://github.com/rafciobb/pg-hello/tree/claude/epic-knuth-y21dv5 → zielony przycisk **Code** → **Download ZIP** → rozpakuj,
    - **z gitem:** `git clone -b claude/epic-knuth-y21dv5 https://github.com/rafciobb/pg-hello.git`
-3. (Opcjonalnie) wrzuć drugie, małe logo do `digguj-panel/public/assets/logo.png`.
+3. (Opcjonalnie) wrzuć drugie, małe logo do `digguj-panel/assets/logo.png`.
 
 ## 2. Uruchomienie
 
 W VS Code: **File → Open Folder** → wybierz folder `digguj-panel`, potem **Terminal → New Terminal** i wpisz:
 
 ```bash
-docker compose -f docker-compose.local.yml up --build
+docker compose -f dev/docker-compose.yml up --build
 ```
 
 Pierwsze uruchomienie trwa kilka minut (pobieranie obrazów). Gdy w terminalu pojawi się
-`DIGGUJ panel działa na http://localhost:3000`, otwórz w przeglądarce (najlepiej **Chrome**):
+`resuming normal operations`, otwórz w przeglądarce (najlepiej **Chrome**):
 
 **http://localhost:3000** → login: **`admin`**, hasło: **`testowe-haslo`**
 
 - Zatrzymanie: `Ctrl+C` w terminalu. Dane (posty, zdjęcia) zostają na następny raz.
 - Ponowne uruchomienie: ta sama komenda.
-- Usunięcie wszystkiego razem z danymi testowymi: `docker compose -f docker-compose.local.yml down -v`
+- Usunięcie wszystkiego razem z danymi testowymi: `docker compose -f dev/docker-compose.yml down -v`
 - Po pobraniu nowszej wersji kodu uruchom z `--build` (jak wyżej) – zmiany w bazie wykonają się same.
 
 ## 3. Lista kontrolna
@@ -60,6 +62,11 @@ Pierwsze uruchomienie trwa kilka minut (pobieranie obrazów). Gdy w terminalu po
 - [ ] Rolka 9:16 – podgląd w pionie, **bez** slajdu CTA
 - [ ] Full Wideo – ▶ Podgląd wideo, różne przejścia; ⬇ Pobierz wideo (.ZIP) – MP4 + okładka + opis
 - [ ] Kalendarium – data, wydarzenia z rokiem na początku linii, kolor akcentu, ⬇ Pobierz grafikę (.JPG)
+
+### Konta (strona /install)
+- [ ] http://localhost:3000/install → „Panel jest zainstalowany”
+- [ ] Zły klucz → komunikat błędu; klucz testowy `klucz-testowy-lokalny-123` + login `admin` + nowe hasło → logowanie nowym hasłem
+- [ ] Ten sam formularz z nowym loginem → powstaje drugie konto
 
 ### Inne
 - [ ] ⚡ Wsad JSON (np. `{"mode":"album","artist":"…","title":"…","slides":[{"text":"…"}]}`)

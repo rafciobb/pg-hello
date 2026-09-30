@@ -1,0 +1,2 @@
+# Skrypty uruchamiane w Linuksie (Docker) muszą mieć uniksowe końce linii
+*.sh text eol=lf

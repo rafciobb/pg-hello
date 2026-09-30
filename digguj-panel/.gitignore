@@ -1,5 +1,5 @@
+config.php
+storage/uploads/*
+!storage/uploads/.gitkeep
 node_modules/
-.env
-uploads/
-backups/
 *.log

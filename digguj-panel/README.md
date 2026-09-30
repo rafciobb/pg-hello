@@ -1,10 +1,12 @@
 # DIGGUJ FAKTY – panel twórcy
 
-Zabezpieczony hasłem panel WWW do tworzenia postów na Instagram: **karuzel 4:5**, **rolek 9:16**, **wideo MP4** i **kalendariów** („Tego dnia w muzyce”). Wyrósł z jednoplikowego generatora uruchamianego przez Live Server – wszystkie jego funkcje zostały zachowane, a posty zapisują się teraz w bazie danych na serwerze.
+Zabezpieczony hasłem panel WWW do tworzenia postów na Instagram: **karuzel 4:5**, **rolek 9:16**, **wideo MP4** i **kalendariów** („Tego dnia w muzyce”). Wyrósł z jednoplikowego generatora uruchamianego przez Live Server – wszystkie jego funkcje zostały zachowane, a posty zapisują się w bazie danych na serwerze.
+
+Działa na **zwykłym hostingu WWW z PHP i MySQL** (np. OVH Hosting Perso/Pro/Performance) – bez VPS-a, bez Node.js, bez Dockera.
 
 ## Co potrafi
 
-- **Logowanie** – brak publicznej rejestracji, konta zakłada się z konsoli serwera.
+- **Logowanie** – brak publicznej rejestracji; pierwsze konto zakłada instalator, kolejne (i reset zapomnianego hasła) strona `/install` z kluczem odzyskiwania.
 - **Lista postów** – miniatury, statusy (Szkic → Gotowy → Zaplanowany → Opublikowany), planowana data publikacji, wyszukiwarka, filtry, duplikowanie, usuwanie, licznik postów w każdym statusie.
 - **Edytor** (Twój dotychczasowy generator):
   - tryby: Album / Ogólny / Kalendarium; formaty: Karuzela 4:5 / Rolka 9:16 / Pełne wideo,
@@ -21,183 +23,120 @@ Zabezpieczony hasłem panel WWW do tworzenia postów na Instagram: **karuzel 4:5
 
 | Warstwa | Co | Dlaczego |
 |---|---|---|
-| Serwer | Node.js 22 + Express 5 | prosty, jeden język (JS) na froncie i backendzie |
-| Baza | PostgreSQL 16 | solidna, darmowa; stan edytora w kolumnie `JSONB`, więc nowe opcje edytora nie wymagają zmian w bazie |
-| Frontend | czysty JavaScript (moduły ES), bez frameworka | brak kroku budowania – edytujesz plik i odświeżasz |
-| Wdrożenie | Docker Compose + Caddy | jedna komenda uruchamia całość, Caddy sam załatwia certyfikat HTTPS |
+| Serwer | PHP 8.1+ (bez frameworka i bez Composera) | działa na każdym zwykłym hostingu; jeden publiczny plik `index.php` |
+| Baza | MySQL 5.7+ / MariaDB 10.3+ | standard na hostingu; stan edytora w kolumnie JSON, więc nowe opcje edytora nie wymagają zmian w bazie |
+| Frontend | czysty JavaScript (moduły ES) | cała grafika (canvas), ZIP i MP4 powstają w przeglądarce – serwer tylko przechowuje dane |
 
 ### Struktura
 
 ```
-digguj-panel/
-├── server/                 # backend
-│   ├── index.js            # start: migracje + serwer HTTP
-│   ├── app.js              # konfiguracja Express (nagłówki bezpieczeństwa, sesje, trasy)
-│   ├── auth.js             # logowanie, hasła (scrypt), ochrona CSRF
-│   ├── config.js           # zmienne środowiskowe
-│   ├── db.js, migrate.js   # połączenie z bazą, system migracji
-│   └── routes/
-│       ├── posts.js        # API postów
-│       └── media.js        # upload i serwowanie zdjęć
-├── migrations/             # zmiany schematu bazy (001_init.sql, 002_..., ...)
-├── public/
-│   ├── pages/              # login.html, index.html (lista), editor.html
-│   ├── css/                # base.css (wspólne), editor.css, dashboard.css
-│   ├── js/
-│   │   ├── render.js       # ★ silnik rysowania slajdów (canvas) – czyste funkcje, bez DOM
-│   │   ├── export.js       # ZIP / JPG / MP4, podgląd wideo
-│   │   ├── editor.js       # logika edytora, autozapis
-│   │   ├── dashboard.js    # lista postów
-│   │   ├── api.js, ui.js   # komunikacja z serwerem, drobne elementy UI
-│   │   └── login.js
-│   └── assets/             # logotypy: digguj-fakty.png (+ opcjonalnie logo.png)
-├── scripts/                # create-user, migrate, cleanup-media, backup.sh
-├── test/                   # testy API
-├── Dockerfile, docker-compose.yml, Caddyfile
-└── .env.example
+digguj-panel/                ← zawartość tego folderu wgrywasz na hosting
+├── index.php                # jedyny publiczny plik PHP: strony, API, zdjęcia
+├── .htaccess                # HTTPS, blokada plików serwera, przekierowanie do index.php
+├── .ovhconfig               # wersja PHP na hostingu OVH
+├── config.sample.php        # wzór konfiguracji (config.php tworzy instalator)
+├── app/                     # kod serwera (niedostępny z przeglądarki)
+│   ├── Core.php             # konfiguracja, baza, migracje, nagłówki bezpieczeństwa, CSRF
+│   ├── Auth.php             # logowanie, sesje w bazie, limit prób, zmiana hasła
+│   ├── Posts.php            # API postów
+│   ├── Media.php            # upload i serwowanie zdjęć, ustawienia (CTA)
+│   └── Installer.php        # strona /install (instalacja, reset hasła, nowe konta)
+├── migrations/              # schemat bazy (001_init.sql, 002_..., ...)
+├── pages/                   # login.html, index.html (lista postów), editor.html
+├── css/  js/  assets/       # wygląd i logika w przeglądarce
+│   └── js/render.js         # ★ silnik rysowania slajdów (canvas)
+├── fonts/  vendor/          # fonty i biblioteki (JSZip, mp4-muxer) – bez zewnętrznych CDN
+├── storage/uploads/         # przesłane zdjęcia (niedostępne bez logowania)
+└── dev/                     # tylko do pracy lokalnej: Docker, testy, skrypt budujący fonty
 ```
 
-## Logotypy
+## Wdrożenie na hosting OVH – krok po kroku
 
-Główne logo „DIGGUJ FAKTY” jest już w `public/assets/digguj-fakty.png`. Opcjonalnie możesz dodać drugie, małe logo jako `public/assets/logo.png` – pojawi się obok głównego (55×55 px).
+Potrzebujesz: dostępu do **OVH Managera**, programu do FTP (np. darmowa **[FileZilla](https://filezilla-project.org/)**) i folderu `digguj-panel` (pobierz ZIP z GitHuba: gałąź `claude/epic-knuth-y21dv5` → **Code → Download ZIP**).
 
-## Szybki test na własnym komputerze
+### 1. Baza danych
+**Web Cloud → Hosting → Twój hosting → zakładka „Bazy danych” → Utwórz bazę danych** (MySQL). Zapisz: **serwer** (np. `xxxxxx.mysql.db`), **nazwę bazy**, **użytkownika** i **hasło**.
 
-Najprościej przez Docker Desktop – jedna komenda, konto testowe zakłada się samo. Instrukcja krok po kroku i lista rzeczy do sprawdzenia: **[TESTOWANIE.md](TESTOWANIE.md)**.
+### 2. Adres panelu (subdomena)
+**Web Cloud → Hosting → zakładka „Multisite” → Dodaj domenę lub subdomenę**:
+- domena: np. `panel.twojadomena.pl`,
+- **katalog główny: `panel`** (osobny folder – Twoja obecna strona zostaje nietknięta),
+- zaznacz **SSL**.
 
-```bash
-docker compose -f docker-compose.local.yml up --build   # → http://localhost:3000  (admin / testowe-haslo)
-```
+Po kilku minutach w zakładce **„Informacje ogólne” → Certyfikat SSL** upewnij się, że certyfikat obejmuje nową subdomenę (w razie potrzeby „Wygeneruj ponownie certyfikat SSL”).
 
-## Uruchomienie lokalnie (na własnym komputerze) – do programowania
+> Panel musi działać w „korzeniu” adresu (np. `https://panel.twojadomena.pl/`), a nie w podfolderze typu `twojadomena.pl/panel/`.
 
-Potrzebujesz **Node.js 22+** i **PostgreSQL** (albo Dockera – patrz niżej).
+### 3. Wgranie plików (FTP)
+Dane FTP: **Hosting → zakładka „FTP – SSH”** (serwer, login; hasło możesz tam zmienić).
+W FileZilli połącz się i wgraj **całą zawartość** folderu `digguj-panel` do folderu **`panel`** (tego z kroku 2).
+Folderów `dev/` i `node_modules/` nie musisz wgrywać (a gdyby trafiły na serwer – i tak są zablokowane).
 
-```bash
-cd digguj-panel
-npm install
+> Włącz w FileZilli pokazywanie ukrytych plików (**Serwer → Wymuś pokazywanie ukrytych plików**) – `.htaccess` i `.ovhconfig` muszą trafić na serwer.
 
-# Baza danych – najprościej w Dockerze:
-docker run -d --name digguj-db -e POSTGRES_USER=digguj -e POSTGRES_PASSWORD=haslo -e POSTGRES_DB=digguj -p 5432:5432 postgres:16-alpine
+### 4. Instalacja
+Otwórz **`https://panel.twojadomena.pl/install`** i wpisz dane bazy z kroku 1 oraz login i hasło do panelu. Instalator:
+- sprawdzi połączenie z bazą i utworzy tabele,
+- założy Twoje konto,
+- zapisze plik `config.php` i pokaże **klucz odzyskiwania** – zapisz go (jest też w `config.php`).
 
-# Konfiguracja
-cp .env.example .env
-#  w .env ustaw:
-#    DATABASE_URL=postgres://digguj:haslo@localhost:5432/digguj
-#    SESSION_SECRET=<wynik: openssl rand -hex 32>
-#    COOKIE_SECURE=false
+Gotowe – zaloguj się pod `https://panel.twojadomena.pl`.
 
-npm run user:create -- admin     # zapyta o hasło (min. 10 znaków)
-npm run dev                      # http://localhost:3000 (restart po każdej zmianie w server/)
-```
-
-## Wdrożenie na serwer (VPS) – krok po kroku
-
-**Serwer:** VPS albo serwer dedykowany z Ubuntu 22.04/24.04 lub Debianem 12, min. **2 GB RAM** (np. OVH VPS). Generowanie grafik i wideo odbywa się w przeglądarce, więc serwer tylko przechowuje dane.
-Zwykły hosting WWW (współdzielony, np. OVH „Hosting Perso/Pro”) się **nie nada** – nie da się na nim uruchomić Node.js ani Dockera.
-
-### 1. Domena (DNS)
-
-Dodaj rekord **A** wskazujący na IP serwera, np. `panel.twojadomena.pl`.
-W OVH: **Web Cloud → Nazwy domen → Twoja domena → Strefa DNS → Dodaj rekord → A**, subdomena `panel`, cel: adres IPv4 serwera. Zmiana zaczyna działać zwykle po kilku minutach (maks. kilka godzin).
-Jeśli dla tej subdomeny istnieje rekord **AAAA** wskazujący gdzie indziej – usuń go.
-
-Nie masz domeny? Do testów wystarczy darmowy adres `panel.<IP-z-myślnikami>.sslip.io` (np. `panel.51-38-10-20.sslip.io`) – działa bez żadnej konfiguracji DNS, a skrypt instalacyjny sam go podpowie.
-
-### 2. Instalacja (jeden skrypt)
-
-```bash
-# z własnego komputera (Windows: PowerShell / Terminal; na OVH VPS domyślny użytkownik to "ubuntu" lub "debian")
-ssh ubuntu@IP_SERWERA
-
-# na serwerze
-sudo apt-get update && sudo apt-get install -y git
-git clone -b claude/epic-knuth-y21dv5 https://github.com/rafciobb/pg-hello.git ~/digguj
-cd ~/digguj/digguj-panel
-bash scripts/setup-server.sh
-```
-
-Skrypt `scripts/setup-server.sh` po kolei:
-1. instaluje Dockera,
-2. pyta o domenę i tworzy `.env` z **losowymi** hasłami do bazy i sesji,
-3. sprawdza, czy domena wskazuje na ten serwer,
-4. otwiera w zaporze tylko SSH, HTTP i HTTPS,
-5. buduje i uruchamia panel (Caddy sam pobiera certyfikat HTTPS),
-6. zakłada Twoje konto i (opcjonalnie) codzienną kopię zapasową o 3:15.
-
-Można go bezpiecznie uruchomić ponownie – nie nadpisze istniejącej konfiguracji.
-
-Gotowe – panel działa pod `https://panel.twojadomena.pl`.
+**Wersja PHP:** panel wymaga PHP 8.1+. Plik `.ovhconfig` ustawia PHP 8.2 – jeśli mimo to zobaczysz komunikat o wersji PHP, ustaw ją w **Hosting → Informacje ogólne → Konfiguracja → Zmień konfigurację** (uwaga: to ustawienie może dotyczyć całego hostingu, sprawdź potem swoją główną stronę).
 
 ### Aktualizacja do nowej wersji
+Wgraj nowe pliki przez FTP w to samo miejsce (nadpisz). **Nie usuwaj** `config.php` ani `storage/uploads/` – to Twoja konfiguracja i zdjęcia. Zmiany w bazie wykonają się same przy pierwszym wejściu.
 
-```bash
-cd ~/digguj/digguj-panel
-git pull
-docker compose up -d --build     # migracje bazy wykonują się automatycznie przy starcie
-```
+### Zapomniane hasło / kolejne konto
+Wejdź na `/install`, podaj **klucz odzyskiwania** (`setup_key` z pliku `config.php` – podejrzysz go przez FTP), login i nowe hasło. Istniejący login → zmiana hasła, nowy login → nowe konto.
 
 ### Kopie zapasowe
+OVH robi automatyczne kopie plików i baz danych hostingu (Manager → Hosting → „FTP – SSH” → Przywróć kopię zapasową / „Bazy danych” → Kopie zapasowe). Dodatkowo co jakiś czas:
+- pobierz przez FTP folder `storage/uploads/` (zdjęcia),
+- w **„Bazy danych”** użyj **„Utwórz kopię zapasową”** i pobierz plik.
+
+### Limity hostingu
+Zdjęcia są automatycznie zmniejszane w przeglądarce przed wysłaniem (maks. 2600 px, zwykle < 3 MB), więc limity uploadu na hostingu nie powinny przeszkadzać. Maksymalny rozmiar pliku ustawisz w `config.php` (`max_upload_mb`).
+
+## Test na własnym komputerze
+
+Przez Docker Desktop – ten sam PHP + MySQL co na hostingu. Instrukcja krok po kroku i lista rzeczy do sprawdzenia: **[TESTOWANIE.md](TESTOWANIE.md)**.
 
 ```bash
-./scripts/backup.sh              # → backups/RRRR-MM-DD_HHMM/{db.dump, uploads.tar.gz}
-```
-
-Automatycznie co noc (`crontab -e`):
-
-```
-15 3 * * * cd ~/digguj/digguj-panel && ./scripts/backup.sh >> backups/backup.log 2>&1
-```
-
-Kopie warto co jakiś czas ściągać poza serwer (np. `rsync`/`scp` na własny komputer albo do chmury).
-
-Przywracanie:
-
-```bash
-docker compose exec -T db pg_restore -U digguj -d digguj --clean --if-exists < backups/<data>/db.dump
-docker compose exec -T app tar -xzf - -C /app < backups/<data>/uploads.tar.gz
-```
-
-### Przydatne komendy
-
-```bash
-docker compose logs -f app                                    # logi aplikacji
-docker compose exec app node scripts/create-user.js <login>   # nowe konto / reset hasła
-docker compose exec app node scripts/cleanup-media.js         # ile miejsca zajmują nieużywane zdjęcia
-docker compose exec app node scripts/cleanup-media.js --delete
+docker compose -f dev/docker-compose.yml up --build   # → http://localhost:3000  (admin / testowe-haslo)
 ```
 
 ## Bezpieczeństwo – co jest zrobione
 
-- HTTPS z automatycznym certyfikatem (Caddy + Let's Encrypt), HSTS.
-- Hasła hashowane **scrypt** (z solą); ochrona przed zgadywaniem – max 10 nieudanych prób / 15 min z jednego IP.
-- Sesje w bazie, ciasteczko `HttpOnly` + `Secure` + `SameSite=Lax`, nowe ID sesji po zalogowaniu, zmiana hasła wylogowuje inne urządzenia.
+- Wymuszony HTTPS (`.htaccess`), HSTS.
+- Hasła hashowane **bcrypt**; limit 10 nieudanych prób logowania / 15 min z jednego IP; porównanie hasła zajmuje tyle samo czasu niezależnie od tego, czy konto istnieje.
+- Sesje w bazie danych, ciasteczko `HttpOnly` + `Secure` + `SameSite=Lax`, nowe ID sesji po zalogowaniu, zmiana hasła wylogowuje inne urządzenia.
 - Ochrona **CSRF** (wymagany nagłówek `X-Requested-With` + weryfikacja `Origin`).
-- Nagłówki bezpieczeństwa (Helmet): restrykcyjne **CSP** (skrypty tylko z własnego serwera), zakaz osadzania w ramkach itd.
-- Upload: rozpoznawanie typu pliku po zawartości (nie po rozszerzeniu), limit rozmiaru, losowe nazwy plików, zdjęcia dostępne tylko po zalogowaniu.
-- Biblioteki (JSZip, mp4-muxer) i fonty serwowane z własnego serwera – żadnych zewnętrznych CDN.
-- Panel ukryty przed wyszukiwarkami (`noindex`).
-- Baza danych nie jest wystawiona do internetu (dostępna tylko wewnątrz Dockera).
+- Restrykcyjne **CSP** (skrypty tylko z własnego serwera), zakaz osadzania w ramkach, `nosniff`.
+- Kod serwera, konfiguracja, migracje i zdjęcia **niedostępne** z przeglądarki (`.htaccess`); zdjęcia wydawane tylko zalogowanym.
+- Upload: rozpoznawanie typu po zawartości pliku, limit rozmiaru, losowe nazwy plików.
+- Zapytania do bazy wyłącznie przez parametry (PDO) – brak SQL injection.
+- Fonty i biblioteki z własnego serwera – żadnych zewnętrznych CDN; panel ukryty przed wyszukiwarkami.
 
 ## Jak rozwijać projekt
 
 ### Nowa opcja w edytorze (np. suwak)
 
-1. Dodaj pole do `public/pages/editor.html` z unikalnym `id` (np. `<input type="range" id="szCaption" data-unit="px">` + `<span id="szCaptionVal">`).
-2. Dodaj domyślną wartość do `DEFAULTS` w `public/js/render.js` (`szCaption: '40'`).
+1. Dodaj pole do `pages/editor.html` z unikalnym `id` (np. `<input type="range" id="szCaption" data-unit="px">` + `<span id="szCaptionVal">`).
+2. Dodaj domyślną wartość do `DEFAULTS` w `js/render.js` (`szCaption: '40'`).
 3. Użyj jej w funkcji rysującej: `cfg.szCaption`.
 
 To wszystko – pole automatycznie się zapisuje, wczytuje i odświeża podgląd. Baza nie wymaga zmian (stan edytora siedzi w `posts.data`).
 
 ### Zmiana w bazie danych
 
-Dodaj **nowy** plik `migrations/002_opis_zmiany.sql` (nigdy nie edytuj już wykonanych). Wykona się automatycznie przy starcie serwera.
+Dodaj **nowy** plik `migrations/002_opis_zmiany.sql` (nigdy nie edytuj już wykonanych; każde polecenie zakończ średnikiem na końcu linii). Wykona się automatycznie przy pierwszym wejściu na panel.
 
 ### Testy
 
 ```bash
-createdb digguj_test   # osobna, pusta baza – testy ją czyszczą!
-TEST_DATABASE_URL=postgres://digguj:haslo@localhost:5432/digguj_test npm test
+docker compose -f dev/docker-compose.yml up -d --build
+npm test            # testy API (Node.js 20+); BASE_URL=... żeby testować inny adres
 ```
 
 ### API (dla przyszłych integracji)
@@ -205,13 +144,15 @@ TEST_DATABASE_URL=postgres://digguj:haslo@localhost:5432/digguj_test npm test
 | Metoda | Ścieżka | Opis |
 |---|---|---|
 | POST | `/api/auth/login` · `/api/auth/logout` · `/api/auth/password` | logowanie / wylogowanie / zmiana hasła |
+| GET | `/api/auth/me` | zalogowany użytkownik |
 | GET | `/api/posts?q=&status=&mode=&sort=` | lista postów |
-| GET · PUT · DELETE | `/api/posts/:id` | pobranie / zapis (wymaga `version`) / usunięcie |
-| POST | `/api/posts` · `/api/posts/:id/duplicate` | nowy post / kopia |
+| GET · PUT · DELETE | `/api/posts/{id}` | pobranie / zapis (wymaga `version`) / usunięcie |
+| POST | `/api/posts` · `/api/posts/{id}/duplicate` | nowy post / kopia |
 | POST | `/api/media` | upload zdjęcia (`multipart/form-data`, pole `file`) |
-| GET · PUT | `/api/settings/ctaDefaults` | domyślne teksty slajdu CTA dla nowych postów |
+| GET | `/media/{id}` | zdjęcie (tylko dla zalogowanych) |
+| GET · PUT | `/api/settings/ctaDefaults` | domyślne ustawienia slajdu CTA dla nowych postów |
 
-Zapytania zmieniające dane muszą mieć nagłówek `X-Requested-With: digguj`.
+Zapytania zmieniające dane muszą mieć nagłówek `X-Requested-With: digguj`. PUT/DELETE można wysłać jako POST z nagłówkiem `X-HTTP-Method-Override` (część hostingów blokuje te metody).
 
 ## Pomysły na kolejne etapy
 
@@ -221,7 +162,7 @@ Zapytania zmieniające dane muszą mieć nagłówek `X-Requested-With: digguj`.
 - **Generowanie treści przez AI** – np. przycisk „wygeneruj ciekawostki” wypełniający slajdy z JSON (format wsadu już istnieje).
 - **Role użytkowników** – kolumna `role` (`admin` / `editor`) już jest w bazie, można ograniczyć np. usuwanie postów.
 - **Historia wersji posta** – tabela `post_versions` zapisywana przy każdym zapisie.
-- Zmniejszanie dużych zdjęć przed wysłaniem (szybszy upload z telefonu).
+- Przycisk „wyczyść nieużywane zdjęcia” (pliki po usuniętych postach).
 
 ## Migracja z wersji lokalnej (Live Server)
 

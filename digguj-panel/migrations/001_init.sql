@@ -1,55 +1,79 @@
--- Użytkownicy panelu (brak publicznej rejestracji – konta zakłada się skryptem npm run user:create)
-CREATE TABLE users (
-  id            serial PRIMARY KEY,
-  username      text NOT NULL,
-  password_hash text NOT NULL,
-  role          text NOT NULL DEFAULT 'admin' CHECK (role IN ('admin', 'editor')),
-  created_at    timestamptz NOT NULL DEFAULT now(),
-  last_login_at timestamptz
-);
-CREATE UNIQUE INDEX users_username_lower_idx ON users (lower(username));
+-- Schemat bazy panelu (MySQL 5.7+ / MariaDB 10.3+). Daty zapisywane w UTC.
 
--- Pliki przesłane na serwer (zdjęcia do slajdów, miniatury postów)
-CREATE TABLE media (
-  id            uuid PRIMARY KEY,
-  kind          text NOT NULL DEFAULT 'image' CHECK (kind IN ('image', 'thumbnail')),
-  filename      text NOT NULL,
-  original_name text,
-  mime          text NOT NULL,
-  size_bytes    integer NOT NULL,
-  uploaded_by   integer REFERENCES users (id) ON DELETE SET NULL,
-  created_at    timestamptz NOT NULL DEFAULT now()
-);
+-- Użytkownicy (brak publicznej rejestracji – konta zakłada się na stronie /install)
+CREATE TABLE IF NOT EXISTS users (
+  id            INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  username      VARCHAR(50)  NOT NULL,
+  password_hash VARCHAR(255) NOT NULL,
+  role          VARCHAR(10)  NOT NULL DEFAULT 'admin',
+  created_at    DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  last_login_at DATETIME     NULL,
+  UNIQUE KEY users_username_uq (username)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Posty. Kolumny = to, po czym filtrujemy/sortujemy; `data` (JSONB) = pełny stan edytora,
--- dzięki czemu nowe opcje w edytorze nie wymagają zmian w schemacie bazy.
-CREATE TABLE posts (
-  id             serial PRIMARY KEY,
-  title          text NOT NULL DEFAULT '',
-  mode           text NOT NULL CHECK (mode IN ('album', 'general', 'calendar')),
-  format         text NOT NULL CHECK (format IN ('carousel', 'reel', 'video')),
-  status         text NOT NULL DEFAULT 'draft' CHECK (status IN ('draft', 'ready', 'scheduled', 'published')),
-  scheduled_at   timestamptz,
-  published_at   timestamptz,
-  feed_number    integer,
-  caption        text NOT NULL DEFAULT '',
-  data           jsonb NOT NULL DEFAULT '{}'::jsonb,
-  thumb_media_id uuid REFERENCES media (id) ON DELETE SET NULL,
-  version        integer NOT NULL DEFAULT 1,
-  created_by     integer REFERENCES users (id) ON DELETE SET NULL,
-  updated_by     integer REFERENCES users (id) ON DELETE SET NULL,
-  created_at     timestamptz NOT NULL DEFAULT now(),
-  updated_at     timestamptz NOT NULL DEFAULT now()
-);
-CREATE INDEX posts_status_idx ON posts (status);
-CREATE INDEX posts_scheduled_at_idx ON posts (scheduled_at);
-CREATE INDEX posts_feed_number_idx ON posts (feed_number);
-CREATE INDEX posts_updated_at_idx ON posts (updated_at DESC);
+-- Przesłane pliki (zdjęcia do slajdów, miniatury postów); same pliki leżą w storage/uploads
+CREATE TABLE IF NOT EXISTS media (
+  id            CHAR(36)     NOT NULL PRIMARY KEY,
+  kind          VARCHAR(10)  NOT NULL DEFAULT 'image',
+  filename      VARCHAR(64)  NOT NULL,
+  original_name VARCHAR(255) NULL,
+  mime          VARCHAR(32)  NOT NULL,
+  size_bytes    INT UNSIGNED NOT NULL,
+  uploaded_by   INT UNSIGNED NULL,
+  created_at    DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  KEY media_kind_created (kind, created_at),
+  CONSTRAINT media_user_fk FOREIGN KEY (uploaded_by) REFERENCES users (id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Sesje logowania (connect-pg-simple)
-CREATE TABLE session (
-  sid    varchar NOT NULL COLLATE "default" PRIMARY KEY,
-  sess   json NOT NULL,
-  expire timestamp(6) NOT NULL
-);
-CREATE INDEX session_expire_idx ON session (expire);
+-- Posty. Kolumny = to, po czym filtrujemy/sortujemy; `data` (JSON) = pełny stan edytora,
+-- dzięki czemu nowe opcje w edytorze nie wymagają zmian w bazie.
+CREATE TABLE IF NOT EXISTS posts (
+  id             INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  title          VARCHAR(200) NOT NULL DEFAULT '',
+  mode           VARCHAR(10)  NOT NULL,
+  format         VARCHAR(10)  NOT NULL,
+  status         VARCHAR(10)  NOT NULL DEFAULT 'draft',
+  scheduled_at   DATETIME     NULL,
+  published_at   DATETIME     NULL,
+  caption        TEXT         NOT NULL,
+  data           MEDIUMTEXT   NOT NULL,
+  thumb_media_id CHAR(36)     NULL,
+  version        INT UNSIGNED NOT NULL DEFAULT 1,
+  created_by     INT UNSIGNED NULL,
+  updated_by     INT UNSIGNED NULL,
+  created_at     DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at     DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  KEY posts_status (status),
+  KEY posts_scheduled (scheduled_at),
+  KEY posts_updated (updated_at),
+  CONSTRAINT posts_thumb_fk FOREIGN KEY (thumb_media_id) REFERENCES media (id) ON DELETE SET NULL,
+  CONSTRAINT posts_created_by_fk FOREIGN KEY (created_by) REFERENCES users (id) ON DELETE SET NULL,
+  CONSTRAINT posts_updated_by_fk FOREIGN KEY (updated_by) REFERENCES users (id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Ustawienia panelu (np. domyślne teksty slajdu CTA)
+CREATE TABLE IF NOT EXISTS settings (
+  name       VARCHAR(64)  NOT NULL PRIMARY KEY,
+  value      MEDIUMTEXT   NOT NULL,
+  updated_by INT UNSIGNED NULL,
+  updated_at DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT settings_user_fk FOREIGN KEY (updated_by) REFERENCES users (id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Sesje logowania
+CREATE TABLE IF NOT EXISTS sessions (
+  id         VARCHAR(128) NOT NULL PRIMARY KEY,
+  user_id    INT UNSIGNED NULL,
+  data       MEDIUMBLOB   NOT NULL,
+  expires_at INT UNSIGNED NOT NULL,
+  KEY sessions_expires (expires_at),
+  KEY sessions_user (user_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Nieudane logowania (ochrona przed zgadywaniem haseł)
+CREATE TABLE IF NOT EXISTS login_attempts (
+  id         BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  ip         VARCHAR(45)  NOT NULL,
+  created_at INT UNSIGNED NOT NULL,
+  KEY login_attempts_ip_time (ip, created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

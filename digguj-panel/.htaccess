@@ -1,0 +1,44 @@
+# DIGGUJ FAKTY – konfiguracja serwera WWW (Apache, np. hosting OVH)
+Options -Indexes
+DirectoryIndex index.php
+AddDefaultCharset UTF-8
+AddType font/woff2 .woff2
+AddType text/javascript .js
+
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+
+  # 1. Zawsze HTTPS (z wyjątkiem testów lokalnych)
+  RewriteCond %{HTTPS} !=on
+  RewriteCond %{HTTP:X-Forwarded-Proto} !=https
+  RewriteCond %{ENV:DIGGUJ_ALLOW_HTTP} !=1
+  RewriteCond %{HTTP_HOST} !^(localhost|127\.0\.0\.1)(:[0-9]+)?$
+  RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]
+
+  # 2. Pliki i katalogi, których nie wolno pobrać z przeglądarki
+  RewriteRule ^(app|pages|migrations|storage|dev|node_modules)(/|$) - [R=404,L]
+  RewriteRule (^|/)\.(?!well-known/) - [R=404,L]
+  RewriteRule ^(config\.php|config\.sample\.php|package(-lock)?\.json|.*\.md)$ - [R=404,L]
+  RewriteCond %{ENV:REDIRECT_STATUS} ^$
+  RewriteCond %{REQUEST_URI} !^/index\.php$
+  RewriteRule \.php$ - [R=404,L]
+
+  # 3. Wszystko, co nie jest istniejącym plikiem (strony, API, zdjęcia) → index.php
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteRule ^ index.php [END]
+</IfModule>
+
+<IfModule mod_headers.c>
+  Header set X-Content-Type-Options "nosniff"
+  Header set X-Frame-Options "DENY"
+  Header set Referrer-Policy "same-origin"
+  Header set X-Robots-Tag "noindex, nofollow"
+</IfModule>
+
+<IfModule mod_expires.c>
+  ExpiresActive On
+  ExpiresByType text/css "access plus 1 hour"
+  ExpiresByType text/javascript "access plus 1 hour"
+  ExpiresByType font/woff2 "access plus 30 days"
+  ExpiresByType image/png "access plus 1 day"
+</IfModule>
