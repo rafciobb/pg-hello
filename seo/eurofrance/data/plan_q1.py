@@ -68,7 +68,7 @@ ROWS = [
         encje="Nagrzewnica | A: funkcja, objawy zapchania, przyczyny (termostat, zapowietrzenie, pompa wody, klapki), naprawa vs wymiana | Powiązane: termostat, pompa wody, płyn chłodniczy, zawór nagrzewnicy, silniczek klapki, dmuchawa",
         wyroznik="Prosty test temperatury węży nagrzewnicy; rozróżnienie „brak ciepła” vs „brak nawiewu” (dmuchawa/rezystor), z odesłaniem do właściwych części",
         linki_kat=f"{B}/ogrzewanie-wentylacja-klimatyzacja/ogrzewanie-wentylacja/nagrzewnice.html → nagrzewnice | {B}/chlodzenie-silnika/termostaty-obudowy-termostatow-krocce.html → termostaty | {B}/ogrzewanie-wentylacja-klimatyzacja/ogrzewanie-wentylacja/zawory-nagrzewnic.html → zawory nagrzewnicy | {B}/ogrzewanie-wentylacja-klimatyzacja/ogrzewanie-wentylacja/rezystory-dmuchawy-opornice.html → rezystory dmuchawy",
-        linki_blog="Linkuje do: EF-2611-02 (zima) | Zaktualizować: pillar K6 (luty 2027) ma linkować tutaj, a ten wpis do pillara",
+        linki_blog="Linkuje do: EF-2611-02 (zima), EF-2702-03 (po publikacji) | Zaktualizować: pillar EF-2702-03 linkuje tutaj",
         cta="Znalazłeś przyczynę? Nagrzewnice, termostaty i zawory do Twojego modelu",
         sezon="Szczyt XII–I; cluster przed pillarem K6 (wyjątek sezonowy, pillar w lutym)",
         pr="Ś-W (szac.)", kd="Ś (szac.)", wb=3, ryzyko="Brak (uwaga: gorący płyn chłodniczy, odkręcanie korka tylko na zimnym silniku)",
