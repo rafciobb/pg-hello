@@ -2,11 +2,10 @@
 
 ## Jak użyć tego promptu (instrukcja dla Ciebie, nie wklejaj jej do modelu)
 
-1. **Uzupełnij zmienne** w sekcji `<brief_klienta>`: wszystko oznaczone `{{...}}`. Gdzie nie masz danych, zostaw `brak danych`. Model przyjmie wtedy założenia i wypisze je jawnie.
-2. **Dołącz dane, jeśli je masz.** Jakość planu rośnie wtedy skokowo:
-   - eksport zapytań z Google Search Console (12–16 mies.: zapytanie, kliknięcia, wyświetlenia, pozycja),
+1. **Prompt jest gotowy do użycia bez uzupełniania.** Brakujące dane zastępują jawne założenia w sekcji `<brief_klienta>`. Jedyne, co warto sprawdzić, to okres planu w sekcji `<cel>` (domyślnie listopad 2026 – październik 2027).
+2. **Opcjonalnie dołącz dane**, jeśli pojawią się później. Jakość planu rośnie wtedy skokowo:
+   - eksport zapytań z Google Search Console (zapytania, na które sklep już się wyświetla),
    - eksport fraz z Senuto / Ahrefs / Semrush (fraza, wolumen, KD, URL rankujący),
-   - listę istniejących wpisów blogowych (tytuł + URL), żeby uniknąć kanibalizacji,
    - top kategorie wg sprzedaży/marży oraz najczęściej kupowane marki/modele/silniki.
 3. **Wybierz model z dużym oknem wyjściowym i najlepiej z dostępem do internetu.** Włącz tworzenie plików (XLSX/CSV), jeśli narzędzie to oferuje.
 4. Wklej wszystko od linii `=== POCZĄTEK PROMPTU ===` do `=== KONIEC PROMPTU ===`.
@@ -26,7 +25,7 @@ Myślisz jak SEOwiec, który będzie ten plan realizował i rozliczał przed kli
 </rola>
 
 <cel>
-Opracuj profesjonalny, kompletny **content plan bloga na 12 miesięcy: {{MIESIĄC_STARTU, np. listopad 2026}} – {{MIESIĄC_KOŃCA, np. październik 2027}}, 5 artykułów miesięcznie (łącznie 60)**, dla sklepu https://www.eurofrance.pl.
+Opracuj profesjonalny, kompletny **content plan bloga na 12 miesięcy: listopad 2026 – październik 2027, 5 artykułów miesięcznie (łącznie 60)**, dla sklepu https://www.eurofrance.pl.
 
 Cele biznesowe planu, w kolejności ważności:
 1. Wzrost ruchu organicznego z Google na zapytania informacyjne (poradnikowe, diagnostyczne, „jak”, „dlaczego”, „objawy”, „co ile”, „ile kosztuje”, „czym się różni”).
@@ -46,7 +45,8 @@ Artykuły mają być poradnikowe, eksperckie, kompleksowe i realnie pomocne, pis
   - 2007: start sprzedaży na **Allegro**; 2009: **własny sklep internetowy**;
   - **od 2015**: mocne postawienie na **nowe, oryginalne części**, a chwilę później **zaawansowana elektronika do wszystkich marek aut** (m.in. sterowniki, nawigacje, pompy ABS);
   - **2025**: sklepy na **20 nowych rynkach europejskich** (m.in. Skandynawia, Bałkany, kraje bałtyckie).
-- **Profil dziś:** dostawca skupiony **przede wszystkim na częściach nowych i oryginalnych**. Części używane nadal są w ofercie; sklep opisuje asortyment jako „nowe i używane, zamienniki, oryginalne” [*].
+- **Profil dziś:** od kilku lat sklep sprzedaje **głównie części nowe**: przede wszystkim oryginalne, a także zamienniki [*]. Części używane to dziś margines oferty, więc **nie buduj na nich strategii contentowej**.
+- **Blog startuje od zera:** nie ma jeszcze żadnych wpisów ani historii ruchu na blogu. Domena sklepu działa od lat.
 - **Marki:** rdzeń i dziedzictwo to **Renault, Peugeot, Citroën, Dacia**. Firma „dawno wyszła poza ramy francuskiej motoryzacji”: są części m.in. do **Volkswagena, Nissana, BMW i Audi**, a elektronika do wszystkich marek.
 - **Główne grupy asortymentu wg firmy:**
   1. „serce napędu”: kompletne silniki, skrzynie biegów, układ napędowy;
@@ -62,25 +62,27 @@ Artykuły mają być poradnikowe, eksperckie, kompleksowe i realnie pomocne, pis
 
 Liczby (oceny, stany magazynowe, warunki obsługi) mogą się zmieniać. W treściach traktuj je jako „do potwierdzenia z klientem przed publikacją”.
 
-**Do uzupełnienia przeze mnie:**
-- Udział marek w sprzedaży (francuskie vs pozostałe): {{uzupełnij lub „brak danych”}}. Bez danych przyjmij, że **marki francuskie są rdzeniem** (ok. 75–85% tematów związanych z konkretnymi modelami), a VW, Audi, BMW i Nissan to rozszerzenie. Zapisz to w „Założeniach”.
-- Proporcja części nowych do używanych w sprzedaży: {{uzupełnij lub „brak danych”}}.
-- Najważniejsze modele i silniki (sprzedażowo): {{uzupełnij lub „brak danych”}}.
-- Kategorie o najwyższej marży / priorytecie sprzedażowym: {{uzupełnij lub „brak danych”}}.
-- Czy sklep oferuje dobór części po VIN / numerze OE i jak go zamówić (formularz, telefon, czat): {{uzupełnij}}.
-- Gwarancja na części używane i nowe (okres, warunki): {{uzupełnij}}.
-- Obecny blog: {{URL bloga lub „brak”}}; istniejące wpisy: {{lista lub „brak”, ew. w załączniku}}.
-- Główni konkurenci w SERP: {{uzupełnij lub „ustal samodzielnie”}}.
-- Ograniczenia/wykluczenia tematów: {{np. brak tematów tuningowych, brak porównań z konkretnymi sklepami}}.
-- Dostęp do eksperta/mechanika po stronie klienta (cytaty, zdjęcia z magazynu i demontażu): {{tak/nie}}.
+**Założenia** (klient na razie nie przekazuje dodatkowych danych; przyjmij je i wypisz w sekcji „Założenia” w Etapie A):
+- **Marki:** francuskie są rdzeniem (ok. 75–85% tematów związanych z konkretnymi modelami). VW, Audi, BMW i Nissan to rozszerzenie.
+- **Brak danych sprzedażowych i marżowych.** Wartość biznesową tematu szacuj na podstawie: typowej wartości koszyka w kategorii, częstotliwości wymiany części i strategicznych kierunków firmy (nowe oryginalne części, elektronika, napęd, bezpieczeństwo).
+- **Brak danych z GSC/Senuto/Ahrefs:** stosuj szacunki jakościowe (patrz zasady rzetelności).
+- **Nie zakładaj usług, których nie potwierdzono** (np. dobór po VIN, konkretny okres gwarancji). W CTA używaj neutralnych sformułowań, np. „sprawdź dopasowanie po numerze części”, „skontaktuj się z doradcą EuroFrance”. Tam, gdzie taka usługa by pomogła, dopisz w komentarzu „do potwierdzenia z klientem”.
+- **Konkurentów w SERP ustal samodzielnie**, jeśli masz dostęp do internetu. Jeśli nie masz, opieraj się na ogólnej wiedzy o polskim rynku części i zaznacz to.
+- **Wykluczenia tematów:** żadne poza zasadami bezpieczeństwa i prawa (pkt 6 zasad strategicznych).
+- **Ekspert po stronie klienta:** nie wiadomo, czy będzie dostępny. Elementy E-E-A-T (cytat eksperta EuroFrance, zdjęcia z magazynu) planuj jako opcjonalne.
 
 **Wnioski strategiczne z profilu** (uwzględnij je w planie):
-1. **Oryginał vs OEM vs zamiennik vs część używana** to naturalna oś tematyczna, idealnie zbieżna z ofertą. Planuj uczciwe porównania, które budują zaufanie, a nie tylko sprzedają.
+0. **Blog startuje od zera, ale w domenie z historią.** W pierwszych 2–3 miesiącach połącz:
+   - artykuły filarowe (pillary) dla 2–4 najważniejszych klastrów, które wyznaczą strukturę;
+   - long-taile o niskiej konkurencji (quick-winy), żeby blog szybko zebrał pierwsze wyświetlenia, kliknięcia i sygnały.
+
+   Nie zaczynaj od najbardziej konkurencyjnych fraz ogólnych. Od pierwszego wpisu buduj gęste linkowanie między artykułami i z bloga do kategorii.
+1. **Oryginał vs OEM vs zamiennik** to naturalna oś tematyczna, idealnie zbieżna z ofertą części nowych. Planuj uczciwe porównania, które budują zaufanie, a nie tylko sprzedają: kiedy oryginał jest wart dopłaty, jak rozpoznać oryginał i uniknąć podróbek, jak czytać numery OE.
 2. **Ekspertyza w autach francuskich od 1997 r.** to przewaga E-E-A-T. Tematy „francuskie” (usterki modeli i silników PSA/Renault, komunikaty, specyficzne rozwiązania jak zawieszenie hydropneumatyczne) mają priorytet, bo tu marka jest najbardziej wiarygodna.
-3. **Duże zespoły** (silniki, skrzynie biegów, karoseria) to wysoka wartość koszyka. Warto planować poradniki typu „jak wybrać używany silnik / skrzynię biegów: co sprawdzić, jakie dokumenty, na co uważać”, „jak dobrać element karoserii w kolorze / kodzie lakieru”.
+3. **Duże zespoły** (silniki, skrzynie biegów, karoseria) to wysoka wartość koszyka. Warto planować poradniki typu „jak dobrać silnik / skrzynię biegów do auta: kody, numery, kompatybilność, na co uważać”, „jak dobrać element karoserii w kolorze / kodzie lakieru”.
 4. **Warsztaty to osobna grupa odbiorców.** Rozważ kilka treści bardziej technicznych (np. identyfikacja części po numerze OE, zamienność części między modelami PSA/Renault), ale nie kosztem głównej grupy, czyli kierowców.
 5. Marki spoza Francji (VW, Audi, BMW, Nissan) włączaj tam, gdzie temat jest uniwersalny lub gdzie jest wyraźny popyt, np. wspólne platformy Renault–Nissan (silniki 1.5 dCi, 1.6 dCi w Qashqaiu i Megane).
-6. **Elektronika do wszystkich marek** (sterowniki silnika/ECU, moduły, nawigacje, pompy ABS/ESP) to strategiczny kierunek firmy od 2015 r. i naturalne miejsce na tematy niezależne od marki. Przykłady: czy używany/nowy sterownik trzeba kodować lub adaptować, immobiliser po wymianie sterownika, objawy uszkodzonej pompy ABS, naprawa vs wymiana modułu. To dobry kandydat na osobny klaster z pillarem. Tematy kodowania i immobilizera oznacz jako „Merytoryczne/Prawne” i nie planuj treści o obchodzeniu zabezpieczeń.
+6. **Elektronika do wszystkich marek** (sterowniki silnika/ECU, moduły, nawigacje, pompy ABS/ESP) to strategiczny kierunek firmy od 2015 r. i naturalne miejsce na tematy niezależne od marki. Przykłady: czy nowy sterownik trzeba kodować lub adaptować, immobiliser po wymianie sterownika, objawy uszkodzonej pompy ABS, naprawa vs wymiana modułu. To dobry kandydat na osobny klaster z pillarem. Tematy kodowania i immobilizera oznacz jako „Merytoryczne/Prawne” i nie planuj treści o obchodzeniu zabezpieczeń.
 7. **Logistyka dużych zespołów** (silnik na palecie, śledzenie przesyłki) to realny argument w poradnikach o zakupie silnika/skrzyni. Wpleć go w CTA, nie w główną treść.
 8. **Ekspansja na 20 rynków europejskich (2025):** plan dotyczy bloga polskiego, ale w Etapie C wskaż artykuły uniwersalne, które warto później przetłumaczyć lub zlokalizować na inne rynki. Oznacz je w komentarzu tagiem `[INTL]`.
 9. Jeśli masz dostęp do internetu, sprawdź stronę sklepu (https://www.eurofrance.pl, podstrona „O EuroFrance”) i zaktualizuj fakty.
@@ -88,7 +90,7 @@ Liczby (oceny, stany magazynowe, warunki obsługi) mogą się zmieniać. W treś
 
 <dane_wejsciowe>
 1. **Drzewo kategorii sklepu** znajdziesz w sekcji `<drzewo_kategorii>` na końcu. To jedyne źródło URL-i kategorii, jakich wolno Ci używać.
-2. Dodatkowe dane (GSC, Senuto/Ahrefs, lista wpisów, dane sprzedażowe), jeśli je dołączyłem: {{opisz załączniki lub wpisz „brak”}}.
+2. Dodatkowe dane (GSC, Senuto/Ahrefs, dane sprzedażowe): **na razie brak**. Pracuj na szacunkach jakościowych. Jeśli dołączę dane w kolejnej wiadomości, zaktualizuj na ich podstawie priorytety.
    - Jeśli dane są dostępne, **opieraj priorytety na danych**, nie na intuicji, i wskazuj, z której kolumny/frazy wynika decyzja.
    - Jeśli ich nie ma, stosuj szacunki jakościowe (patrz zasady rzetelności).
 </dane_wejsciowe>
@@ -108,13 +110,13 @@ Plan ma być zdominowany przez intencję informacyjną, ale każdy temat musi mi
 - **Jak to działa / budowa**: dla encji, które użytkownik musi zrozumieć przed zakupem.
 - **Kiedy wymieniać / żywotność / interwały**: „co ile wymieniać rozrząd w 1.5 dCi”.
 - **Koszty i opłacalność**: widełki, czynniki kosztu, naprawa vs wymiana. Nigdy nie podawaj konkretnych cen jako faktów.
-- **Część oryginalna vs OEM vs zamiennik vs używana vs regenerowana**: kluczowe dla sklepu z częściami oryginalnymi, nowymi i używanymi. Musi być uczciwe: kiedy oryginał jest wart dopłaty, kiedy używana część ma sens, a kiedy (np. elementy bezpieczeństwa, części eksploatacyjne) lepiej kupić nową.
+- **Część oryginalna vs OEM vs zamiennik (aftermarket)**: kluczowe dla sklepu sprzedającego głównie nowe części. Musi być uczciwe: kiedy oryginał jest wart dopłaty, kiedy dobry zamiennik wystarczy, jak rozpoznać oryginał i uniknąć podróbek, co oznaczają numery OE/OEM. Części regenerowane lub używane pojawiają się najwyżej jako kontekst porównania.
 - **Zakup dużych zespołów** (silnik, skrzynia biegów, elementy karoserii): co sprawdzić, jak porównać kody i numery, jakie ryzyka, co z rejestracją/numerem silnika. Wysoka wartość koszyka.
 - **Jak dobrać właściwą część**: numer OE, VIN, kod silnika, tabliczka znamionowa, wersja wyposażenia, różnice między rocznikami. To typ o najwyższym potencjale konwersji.
 - **Kontrolki, komunikaty i kody błędów** typowe dla aut francuskich (np. komunikaty PSA/Renault, kody OBD). Duży popyt, mało dobrych treści po polsku.
 - **Typowe usterki konkretnych modeli/silników**: „najczęstsze usterki Renault Megane III 1.5 dCi”, „problemy z paskiem rozrządu w oleju 1.2 PureTech”. Silne long-taile, wysoka intencja zakupowa.
 - **Poradniki sezonowe**: zima (akumulator, świece żarowe, nagrzewnica, ogrzewanie postojowe, opony zimowe, wycieraczki), wiosna/lato (klimatyzacja, chłodzenie, opony letnie), jesień (oświetlenie, przegląd przed zimą).
-- **Checklisty i poradniki zakupowe/montażowe**: co sprawdzić przy odbiorze używanej części, jakie części wymienić razem (np. rozrząd + pompa wody). Ostrożnie przy DIY, patrz pkt 6.
+- **Checklisty i poradniki zakupowe/montażowe**: co sprawdzić po otrzymaniu części (zgodność numeru, oznaczenia oryginału, kompletność zestawu), jakie części wymienić razem (np. rozrząd + pompa wody). Ostrożnie przy DIY, patrz pkt 6.
 - **Niszowe „perełki” z drzewa kategorii**, które często mają zaskakująco duży popyt (np. kod do radia fabrycznego, programowanie kluczyka/karty Renault, aktualizacja map w fabrycznej nawigacji, wymiana wkładu lusterka). Sprawdź drzewo pod tym kątem.
 
 Każdemu artykułowi przypisz **jedną dominującą intencję** i etap lejka: TOFU (świadomość problemu), MOFU (rozważanie rozwiązania), BOFU-informacyjny (dobór konkretnej części).
@@ -122,7 +124,7 @@ Każdemu artykułowi przypisz **jedną dominującą intencję** i etap lejka: TO
 ## 3. Kanibalizacja i relacja blog ↔ kategorie
 - Blog **nie może celować w frazy transakcyjne kategorii** („pompa wody Renault”, „klocki hamulcowe sklep”, „[część] cena”). Te frazy należą do stron kategorii. Blog wspiera je linkami i autorytetem tematycznym.
 - **Jedna fraza główna = jeden artykuł.** Żadne dwa wpisy w planie nie mogą odpowiadać na tę samą dominującą intencję. Jeśli dwa tematy są zbyt bliskie, połącz je w jeden artykuł albo wyraźnie rozdziel kąty i opisz różnicę w komentarzu.
-- Jeśli dostałeś listę istniejących wpisów, zaznacz tematy do **aktualizacji/rozbudowy** zamiast pisania nowych.
+- Blog startuje od zera, więc nie ma wpisów do aktualizacji. Pilnuj jednak, żeby 60 zaplanowanych wpisów nie konkurowało między sobą, i planuj tematy tak, żeby dało się je później rozbudowywać zamiast pisać nowe, bliźniacze teksty.
 
 ## 4. Encje, EAV i widoczność w LLM-ach
 Dla każdego artykułu zdefiniuj:
@@ -142,11 +144,11 @@ Konsekwentnie używaj tych samych nazw encji w całym planie (spójny słownik p
 
 ## 6. Ostrożność, E-E-A-T i bezpieczeństwo
 - Tematy dotyczące **bezpieczeństwa** (hamulce, układ kierowniczy, zawieszenie, poduszki powietrzne, pasy, napinacze) oznacz flagą ryzyka. Artykuły muszą rekomendować weryfikację/montaż przez fachowca, jeśli błąd grozi wypadkiem.
-- Tematy o **aspektach prawnych** (np. usuwanie DPF/EGR, homologacja oświetlenia i żarówek LED, opony zimowe, przegląd techniczny, montaż używanych elementów SRS) oznacz „do weryfikacji prawnej/merytorycznej”. W planie nie podawaj przepisów jako pewnych faktów.
+- Tematy o **aspektach prawnych** (np. usuwanie DPF/EGR, homologacja oświetlenia i żarówek LED, opony zimowe, przegląd techniczny, montaż i wymiana elementów SRS) oznacz „do weryfikacji prawnej/merytorycznej”. W planie nie podawaj przepisów jako pewnych faktów.
 - Nie planuj treści, które zachęcają do nielegalnych lub niebezpiecznych praktyk (np. „jak wyciąć DPF”). Możesz za to zaplanować rzetelny artykuł o konsekwencjach i legalnych alternatywach.
-- W komentarzu wskaż, gdzie warto dodać element E-E-A-T: cytat mechanika, zdjęcia własne z demontażu/magazynu, tabelę numerów OE, źródło producenta.
+- W komentarzu wskaż, gdzie warto dodać element E-E-A-T: cytat mechanika, zdjęcia własne z magazynu, tabelę numerów OE, źródło producenta.
 - Wykorzystuj realne atuty firmy jako dowody doświadczenia: działalność od 1997 r., magazyn 2000 m², setki silników i skrzyń na stanie, obsługa warsztatów. Nie przesadzaj z autopromocją: fakt o firmie ma wspierać wiarygodność porady, a nie ją zastępować.
-- Do tematów prawnych dolicz też wymianę silnika na używany (numer silnika a dokumenty pojazdu, zgłoszenia) i sprzedaż/montaż używanych elementów układów bezpieczeństwa.
+- Do tematów prawnych dolicz też wymianę silnika (numer silnika a dokumenty pojazdu, ewentualne zgłoszenia).
 
 ## 7. Sezonowość i timing
 - Uwzględnij polską sezonowość popytu i **publikuj z wyprzedzeniem 4–8 tygodni przed szczytem**, żeby artykuł zdążył się zaindeksować i zebrać sygnały (np. poradniki zimowe we wrześniu/październiku, klimatyzacja w marcu/kwietniu).
@@ -173,11 +175,17 @@ Ze względu na objętość pracuj **w 3 etapach**. Po każdym etapie zatrzymaj s
 
 ### ETAP A: Strategia (bez tabeli 60 tematów)
 1. **Podsumowanie profilu klienta i założenia**: zweryfikowane fakty + lista założeń.
-2. **Analiza drzewa kategorii**: które obszary mają największy potencjał contentowy i sprzedażowy, a które najmniejszy (z uzasadnieniem). Dodaj **uwagi SEO do samej struktury kategorii**, np. zdublowane lub nakładające się kategorie (spojlery w kilku miejscach, spryskiwacze reflektorów w dwóch działach, recyrkulacja spalin w dwóch miejscach), literówki w URL-ach i kategorie bez pokrycia contentowego. To dodatkowa wartość dla klienta.
-3. **Mapa tematyczna**: 8–12 klastrów, dla każdego: nazwa, encja główna klastra, kategorie sklepu, które wspiera, proponowany pillar, liczba artykułów w planie rocznym, uzasadnienie priorytetu.
-4. **Kalendarz strategiczny**: tabela 12 miesięcy × dominujące klastry i motywy sezonowe z krótkim uzasadnieniem.
-5. **Model priorytetyzacji**: pokaż, jak liczysz priorytet, np. Wartość biznesowa 40% + Potencjał ruchu 30% + Łatwość rankowania 20% + Pilność sezonowa 10% → P1/P2/P3.
-6. **Rozkład planu**: ile artykułów przypada na klaster, typ treści, etap lejka i poziom ryzyka.
+2. **Fundamenty startującego bloga**: krótkie rekomendacje, co przygotować przed publikacją pierwszych wpisów, np.:
+   - struktura kategorii bloga odpowiadająca klastrom;
+   - strona autora/eksperta i informacja o tym, kto tworzy treści (E-E-A-T);
+   - szablon artykułu: spis treści, krótka odpowiedź na początku, FAQ, breadcrumbs, dane strukturalne;
+   - moduł linków z kategorii sklepu do powiązanych poradników;
+   - uwzględnienie bloga w mapie strony XML.
+3. **Analiza drzewa kategorii**: które obszary mają największy potencjał contentowy i sprzedażowy, a które najmniejszy (z uzasadnieniem). Dodaj **uwagi SEO do samej struktury kategorii**, np. zdublowane lub nakładające się kategorie (spojlery w kilku miejscach, spryskiwacze reflektorów w dwóch działach, recyrkulacja spalin w dwóch miejscach), literówki w URL-ach i kategorie bez pokrycia contentowego. To dodatkowa wartość dla klienta.
+4. **Mapa tematyczna**: 8–12 klastrów, dla każdego: nazwa, encja główna klastra, kategorie sklepu, które wspiera, proponowany pillar, liczba artykułów w planie rocznym, uzasadnienie priorytetu.
+5. **Kalendarz strategiczny**: tabela 12 miesięcy × dominujące klastry i motywy sezonowe z krótkim uzasadnieniem.
+6. **Model priorytetyzacji**: pokaż, jak liczysz priorytet, np. Wartość biznesowa 40% + Potencjał ruchu 30% + Łatwość rankowania 20% + Pilność sezonowa 10% → P1/P2/P3.
+7. **Rozkład planu**: ile artykułów przypada na klaster, typ treści, etap lejka i poziom ryzyka.
 
 ### ETAP B: Content plan (4 części, po 1 kwartale = 15 artykułów)
 Wygeneruj tabelę w 4 porcjach (Q1, Q2, Q3, Q4). Po każdej porcji czekaj na `DALEJ`.
@@ -199,7 +207,7 @@ Wygeneruj tabelę w 4 porcjach (Q1, Q2, Q3, Q4). Po każdej porcji czekaj na `DA
 12. **Intencja i etap lejka**: np. „Informacyjna – diagnostyczna / TOFU”.
 13. **Typ i format treści**: np. poradnik diagnostyczny, porównanie, checklista, kompendium; z elementami: tabela, FAQ, schemat/grafika, kalkulator itp.
 14. **Encja główna + atrybuty EAV + encje powiązane**: zwięźle, np. „Koło dwumasowe | A: funkcja, objawy zużycia, żywotność [km], koszt [widełki], kompatybilność [silniki] | Powiązane: sprzęgło, łożysko oporowe, 1.5 dCi”.
-15. **Wyróżnik / information gain**: co sprawi, że ten tekst będzie lepszy od obecnego TOP 10 (np. tabela numerów OE dla modeli francuskich, checklista odbioru używanej części, zdjęcia z demontażu).
+15. **Wyróżnik / information gain**: co sprawi, że ten tekst będzie lepszy od obecnego TOP 10 (np. tabela numerów OE dla modeli francuskich, checklista weryfikacji oryginalności części, zdjęcia z magazynu).
 16. **Linki do kategorii**: 2–5 × „URL → anchor”, URL-e wyłącznie z drzewa.
 17. **Linki wewnętrzne blog**: do których ID linkuje ten wpis oraz które wcześniejsze ID trzeba zaktualizować o link do niego.
 18. **CTA / most do konwersji**.
