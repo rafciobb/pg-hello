@@ -222,7 +222,6 @@ function applyModeUI() {
   $('calendarDataCard').hidden = mode !== 'calendar';
   $('slidesCard').hidden = mode === 'calendar';
   $('coverDurationContainer').hidden = mode !== 'album';
-  $('ctaCard').hidden = mode === 'calendar';
   $('calAccent').value = $('colSlideArtist').value;
   $('jsonText').placeholder = mode === 'calendar'
     ? '{\n  "mode": "calendar",\n  "calDate": "28 WRZEŚNIA",\n  "calEvents": [\n    "1991: Nirvana wydaje...",\n    "2003: Kolejne wydarzenie..."\n  ]\n}'
@@ -234,6 +233,8 @@ function applyFormatUI() {
   const mode = getRadio('postMode');
   const format = getRadio('postFormat');
   $('videoSettings').hidden = format !== 'video';
+  // Slajd CTA dotyczy tylko karuzel (nie rolek, wideo i kalendarium)
+  $('ctaCard').hidden = mode === 'calendar' || format !== 'carousel';
   let label = '⬇ POBIERZ KARUZELĘ (.ZIP)';
   if (format === 'video') label = '⬇ POBIERZ WIDEO (.ZIP)';
   else if (mode === 'calendar') label = '⬇ POBIERZ GRAFIKĘ (.JPG)';

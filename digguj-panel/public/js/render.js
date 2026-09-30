@@ -31,6 +31,7 @@ export const DEFAULTS = {
   calEvents: '',
   // Slajd końcowy z wezwaniem do akcji (CTA)
   ctaEnabled: '1',
+  ctaStyle: 'card',
   ctaLabel: 'JEŚLI PODOBA CI SIĘ TO, CO ROBIMY',
   ctaTitle: 'UDOSTĘPNIJ I ZREPOSTUJ',
   ctaText: 'Każde udostępnienie pomaga nam dotrzeć do kolejnych fanów muzyki. Dzięki, że jesteś z nami!',
@@ -38,7 +39,10 @@ export const DEFAULTS = {
 };
 
 /** Pola CTA – można je zapisać jako domyślne dla nowych postów. */
-export const CTA_FIELDS = ['ctaEnabled', 'ctaLabel', 'ctaTitle', 'ctaText', 'ctaHandle'];
+export const CTA_FIELDS = ['ctaEnabled', 'ctaStyle', 'ctaLabel', 'ctaTitle', 'ctaText', 'ctaHandle'];
+
+/** Style slajdu CTA: szklana karta, karta z logo w medalionie, sam tekst na rozmytym tle. */
+export const CTA_STYLES = ['card', 'medallion', 'plain'];
 
 const int = (v, fallback) => {
   const n = parseInt(v, 10);
@@ -59,9 +63,10 @@ function countContentSlides(mode, slides) {
   return mode === 'album' ? active + 1 : active;
 }
 
-/** Czy na końcu posta dokleić slajd CTA (nie dotyczy kalendarium). */
+/** Czy na końcu posta dokleić slajd CTA – tylko karuzele 4:5 (bez rolek, wideo i kalendarium). */
 export function hasCtaSlide(cfg, slides) {
-  return cfg.postMode !== 'calendar' && cfg.ctaEnabled === '1' && countContentSlides(cfg.postMode, slides) > 0;
+  return cfg.postMode !== 'calendar' && cfg.postFormat === 'carousel' && cfg.ctaEnabled === '1'
+    && countContentSlides(cfg.postMode, slides) > 0;
 }
 
 /** Liczba canvasów w podglądzie (okładka + ciekawostki + ewentualnie CTA). */
@@ -539,14 +544,14 @@ function drawIcon(ctx, name, cx, cy, size, color, lineWidth = 2) {
   ctx.restore();
 }
 
-function drawPill(ctx, x, y, w, h, { fill, color, text, iconName, outline = false }) {
+function drawPill(ctx, x, y, w, h, { fill, color, text, iconName, outline = false, fontSize = 34 }) {
   ctx.save();
   ctx.beginPath();
   if (ctx.roundRect) ctx.roundRect(x, y, w, h, h / 2); else ctx.rect(x, y, w, h);
-  if (outline) { ctx.strokeStyle = color; ctx.lineWidth = 3; ctx.stroke(); } else { ctx.fillStyle = fill; ctx.fill(); }
-  ctx.font = '900 34px "Montserrat"';
+  if (outline) { ctx.strokeStyle = color; ctx.lineWidth = 2.5; ctx.stroke(); } else { ctx.fillStyle = fill; ctx.fill(); }
+  ctx.font = `900 ${fontSize}px "Montserrat"`;
   const tw = ctx.measureText(text).width;
-  const iconSize = 38, gap = 20;
+  const iconSize = Math.round(fontSize * 1.12), gap = Math.round(fontSize * 0.55);
   const sx = x + (w - tw - gap - iconSize) / 2;
   ctx.fillStyle = color;
   ctx.textAlign = 'left';
@@ -556,119 +561,185 @@ function drawPill(ctx, x, y, w, h, { fill, color, text, iconName, outline = fals
   ctx.restore();
 }
 
-/** Układ tekstów CTA dopasowany do dostępnej wysokości (zmniejsza fonty, gdy tekst jest długi). */
-function layoutCta(ctx, cfg, availableH, tall) {
-  const label = (cfg.ctaLabel || '').trim().toUpperCase();
-  const title = (cfg.ctaTitle || '').trim().toUpperCase();
-  const body = (cfg.ctaText || '').trim();
-  const handle = (cfg.ctaHandle || '').trim();
-  const maxW = W - 180;
-  const buttonsGap = tall ? 80 : 44;
-  let titleSize = 96, bodySize = 34, layout;
+function ctaTexts(cfg) {
+  return {
+    label: (cfg.ctaLabel || '').trim().toUpperCase(),
+    title: (cfg.ctaTitle || '').trim().toUpperCase(),
+    body: (cfg.ctaText || '').trim(),
+    handle: (cfg.ctaHandle || '').trim(),
+  };
+}
+
+/**
+ * Treść CTA (nadtytuł, tytuł, [kreska], tekst, przyciski, [profil]) wyśrodkowana w poziomie od wysokości y.
+ * Przy draw=false tylko mierzy. Zwraca wysokość bloku.
+ */
+function ctaBlock(ctx, cfg, o) {
+  const T = ctaTexts(cfg);
+  let y = o.y;
+  ctx.save();
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'top';
+  if (o.draw && o.shadow) { ctx.shadowColor = 'rgba(0, 0, 0, 0.55)'; ctx.shadowBlur = 14; ctx.shadowOffsetY = 4; }
+
+  if (T.label) {
+    let size = o.labelSize;
+    ctx.font = `800 ${size}px "Montserrat"`;
+    while (ctx.measureText(T.label).width > o.maxW + 60 && size > 20) { size -= 2; ctx.font = `800 ${size}px "Montserrat"`; }
+    if (o.draw) { ctx.fillStyle = o.accent; ctx.fillText(T.label, W / 2, y); }
+    y += o.labelSize + (o.divider ? 40 : 44);
+  }
+  if (T.title) {
+    ctx.font = `900 ${o.titleSize}px "Montserrat"`;
+    const lh = Math.round(o.titleSize * 1.04);
+    getLines(ctx, T.title, o.maxW).forEach((line) => { if (o.draw) { ctx.fillStyle = '#ffffff'; ctx.fillText(line, W / 2, y); } y += lh; });
+    y += o.divider ? 28 : 26;
+  }
+  if (o.divider) {
+    if (o.draw) { ctx.fillStyle = o.accent; ctx.fillRect(W / 2 - 40, y, 80, 6); }
+    y += 6 + 34;
+  }
+  if (T.body) {
+    ctx.font = `500 ${o.bodySize}px "DM Sans"`;
+    const lh = Math.round(o.bodySize * 1.42);
+    getLines(ctx, T.body, o.maxW - (o.shadow ? 80 : 0)).forEach((line) => {
+      if (o.draw) { ctx.fillStyle = o.shadow ? 'rgba(255,255,255,0.9)' : 'rgba(255,255,255,0.82)'; ctx.fillText(line, W / 2, y); }
+      y += lh;
+    });
+  }
+  y += o.compact ? 50 : 60;
+  ctx.restore();
+
+  const bw = o.compact ? 340 : 400, bh = o.compact ? 88 : 96, gap = o.compact ? 20 : 24;
+  if (o.draw) {
+    drawPill(ctx, W / 2 - bw - gap / 2, y, bw, bh, { fill: o.accent, color: '#0a0a0a', text: 'UDOSTĘPNIJ', iconName: 'send', fontSize: o.compact ? 30 : 34 });
+    drawPill(ctx, W / 2 + gap / 2, y, bw, bh, { color: '#ffffff', text: 'REPOSTUJ', iconName: 'repeat', outline: true, fontSize: o.compact ? 30 : 34 });
+  }
+  y += bh;
+
+  if (T.handle) {
+    y += 30;
+    if (o.draw) {
+      ctx.save();
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'top';
+      if (o.shadow) { ctx.shadowColor = 'rgba(0, 0, 0, 0.55)'; ctx.shadowBlur = 14; ctx.shadowOffsetY = 4; }
+      ctx.font = '800 28px "DM Sans"';
+      ctx.fillStyle = 'rgba(255,255,255,0.8)';
+      ctx.fillText(`OBSERWUJ ${T.handle}`, W / 2, y);
+      ctx.restore();
+    }
+    y += 28;
+  }
+  return y - o.y;
+}
+
+/** Dobiera rozmiary fontów tak, żeby blok CTA zmieścił się w maxH (tytuł maks. 3 linie). */
+function fitCtaBlock(ctx, cfg, o) {
+  let titleSize = o.titleStart, bodySize = o.bodyStart;
   for (;;) {
+    const opts = { ...o, titleSize, bodySize, draw: false, y: 0 };
+    const height = ctaBlock(ctx, cfg, opts);
     ctx.font = `900 ${titleSize}px "Montserrat"`;
-    const titleLines = title ? getLines(ctx, title, maxW) : [];
-    ctx.font = `500 ${bodySize}px "DM Sans"`;
-    const bodyLines = body ? getLines(ctx, body, maxW - 80) : [];
-    const titleLH = Math.round(titleSize * 1.04), bodyLH = Math.round(bodySize * 1.41);
-    const height = (label ? 58 : 0)
-      + titleLines.length * titleLH + (title ? 22 : 0)
-      + bodyLines.length * bodyLH + buttonsGap
-      + 96 + (handle ? 30 + 30 : 0);
-    layout = { label, handle, titleLines, bodyLines, titleSize, bodySize, titleLH, bodyLH, buttonsGap, height };
-    if ((height <= availableH && titleLines.length <= 3) || titleSize <= 56) return layout;
+    const titleLines = getLines(ctx, ctaTexts(cfg).title, o.maxW).length;
+    if ((height <= o.maxH && titleLines <= 3) || titleSize <= 52) return { ...opts, height };
     titleSize -= 4;
     if (bodySize > 26) bodySize -= 1;
   }
 }
 
-/**
- * Slajd końcowy: tło identyczne jak na 1. slajdzie (rozmyta okładka z tymi samymi ustawieniami blur/przyciemnienia),
- * na nim ostra okładka wtapiająca się w tło, a pod nią zachęta do udostępnienia i repostu.
- */
-export function drawCtaSlide(canvas, cfg, assets, format, renderScale = 2, hideLogo = false) {
-  const tall = isTallFormat(format);
-  const H = tall ? 1920 : 1350;
-  const ctx = prepareCanvas(canvas, H, renderScale);
-  ctx.clearRect(0, 0, W, H);
-  const cover = assets.coverImg;
-  drawBlurredBackground(ctx, cover, H, cfg);
-
-  const accent = cfg.colSlideArtist || '#f0e040';
-  const bottomLimit = H - (tall ? 300 : 60);
-  let y;
-
-  if (cover) {
-    const size = tall ? 980 : 780;
-    const x = (W - size) / 2;
-    const y0 = tall ? 260 : 190;
-    // Okładka na osobnej warstwie z maską: dół i boki płynnie przechodzą w rozmyte tło
-    const layer = document.createElement('canvas');
-    layer.width = layer.height = Math.round(size * renderScale);
-    const lc = layer.getContext('2d');
-    lc.imageSmoothingQuality = 'high';
-    lc.scale(renderScale, renderScale);
-    drawImageProp(lc, cover, 0, 0, size, size);
-    lc.globalCompositeOperation = 'destination-in';
-    const fadeY = lc.createLinearGradient(0, size * 0.28, 0, size * 0.66);
-    fadeY.addColorStop(0, 'rgba(0,0,0,1)');
-    fadeY.addColorStop(1, 'rgba(0,0,0,0)');
-    lc.fillStyle = fadeY;
-    lc.fillRect(0, 0, size, size);
-    const fadeX = lc.createLinearGradient(0, 0, size, 0);
-    fadeX.addColorStop(0, 'rgba(0,0,0,0)');
-    fadeX.addColorStop(0.06, 'rgba(0,0,0,1)');
-    fadeX.addColorStop(0.94, 'rgba(0,0,0,1)');
-    fadeX.addColorStop(1, 'rgba(0,0,0,0)');
-    lc.fillStyle = fadeX;
-    lc.fillRect(0, 0, size, size);
-    ctx.drawImage(layer, x, y0, size, size);
-    y = y0 + size * (tall ? 0.7 : 0.68);
-  }
-
-  const available = bottomLimit - (y ?? (tall ? 300 : 160));
-  const L = layoutCta(ctx, cfg, available, tall);
-  if (y === undefined) y = Math.max(tall ? 300 : 160, (H - L.height) / 2); // bez okładki: tekst na środku
+/** "Szkło": to, co pod spodem, mocniej rozmyte i przyciemnione, z delikatną ramką i cieniem. */
+function drawGlassRect(canvas, ctx, H, scale, x, y, w, h) {
+  const snap = document.createElement('canvas');
+  snap.width = canvas.width;
+  snap.height = canvas.height;
+  snap.getContext('2d').drawImage(canvas, 0, 0);
 
   ctx.save();
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'top';
-  ctx.shadowColor = 'rgba(0, 0, 0, 0.5)'; ctx.shadowBlur = 10; ctx.shadowOffsetY = 4;
-  if (L.label) {
-    ctx.fillStyle = accent;
-    let size = 34;
-    ctx.font = `800 ${size}px "Montserrat"`;
-    while (ctx.measureText(L.label).width > W - 120 && size > 20) { size -= 2; ctx.font = `800 ${size}px "Montserrat"`; }
-    ctx.fillText(L.label, W / 2, y);
-    y += 58;
-  }
-  ctx.fillStyle = '#ffffff';
-  ctx.font = `900 ${L.titleSize}px "Montserrat"`;
-  L.titleLines.forEach((line) => { ctx.fillText(line, W / 2, y); y += L.titleLH; });
-  if (L.titleLines.length) y += 22;
-  ctx.fillStyle = 'rgba(255,255,255,0.85)';
-  ctx.font = `500 ${L.bodySize}px "DM Sans"`;
-  L.bodyLines.forEach((line) => { ctx.fillText(line, W / 2, y); y += L.bodyLH; });
+  ctx.shadowColor = 'rgba(0,0,0,0.45)'; ctx.shadowBlur = 60; ctx.shadowOffsetY = 20;
+  ctx.fillStyle = '#000';
+  ctx.fillRect(x, y, w, h);
   ctx.restore();
 
-  y += L.buttonsGap;
-  const bw = 400, bh = 96, gap = 24;
-  drawPill(ctx, W / 2 - bw - gap / 2, y, bw, bh, { fill: accent, color: '#0a0a0a', text: 'UDOSTĘPNIJ', iconName: 'send' });
-  drawPill(ctx, W / 2 + gap / 2, y, bw, bh, { color: '#ffffff', text: 'REPOSTUJ', iconName: 'repeat', outline: true });
-  y += bh;
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(x, y, w, h);
+  ctx.clip();
+  // filtr blur działa w pikselach canvasa – przy renderze 2× trzeba go podwoić
+  ctx.filter = `blur(${28 * scale}px) saturate(120%)`;
+  ctx.drawImage(snap, 0, 0, W, H);
+  ctx.filter = 'none';
+  ctx.fillStyle = 'rgba(12,12,12,0.55)';
+  ctx.fillRect(x, y, w, h);
+  ctx.restore();
 
-  if (L.handle) {
-    ctx.save();
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'top';
-    ctx.shadowColor = 'rgba(0, 0, 0, 0.5)'; ctx.shadowBlur = 10; ctx.shadowOffsetY = 4;
-    ctx.font = '800 30px "DM Sans"';
-    ctx.fillStyle = 'rgba(255,255,255,0.85)';
-    ctx.fillText(`OBSERWUJ ${L.handle}`, W / 2, y + 30);
-    ctx.restore();
+  ctx.strokeStyle = 'rgba(255,255,255,0.14)';
+  ctx.lineWidth = 1.5;
+  ctx.strokeRect(x + 0.75, y + 0.75, w - 1.5, h - 1.5);
+}
+
+function drawLogoMedallion(canvas, ctx, H, scale, cx, cy, r, logo, accent) {
+  const snap = document.createElement('canvas');
+  snap.width = canvas.width;
+  snap.height = canvas.height;
+  snap.getContext('2d').drawImage(canvas, 0, 0);
+
+  ctx.save();
+  ctx.shadowColor = 'rgba(0,0,0,0.5)'; ctx.shadowBlur = 40;
+  ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.fillStyle = '#111'; ctx.fill();
+  ctx.restore();
+
+  ctx.save();
+  ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.clip();
+  ctx.filter = `blur(${20 * scale}px)`;
+  ctx.drawImage(snap, 0, 0, W, H);
+  ctx.filter = 'none';
+  ctx.fillStyle = 'rgba(12,12,12,0.7)';
+  ctx.fillRect(cx - r, cy - r, 2 * r, 2 * r);
+  ctx.restore();
+
+  ctx.beginPath(); ctx.arc(cx, cy, r - 1.5, 0, Math.PI * 2);
+  ctx.strokeStyle = accent; ctx.lineWidth = 3; ctx.stroke();
+  const lw = 150, lh = logo.height * (lw / logo.width);
+  ctx.drawImage(logo, cx - lw / 2, cy - lh / 2, lw, lh);
+}
+
+/**
+ * Slajd końcowy (tylko karuzela 4:5). Tło jak na 1. slajdzie (rozmyta okładka z tymi samymi ustawieniami),
+ * treść wyśrodkowana – w zależności od stylu na szklanej karcie, karcie z medalionem albo wprost na tle.
+ */
+export function drawCtaSlide(canvas, cfg, assets, format, renderScale = 2, hideLogo = false) {
+  const H = isTallFormat(format) ? 1920 : 1350;
+  const ctx = prepareCanvas(canvas, H, renderScale);
+  ctx.clearRect(0, 0, W, H);
+  drawBlurredBackground(ctx, assets.coverImg, H, cfg);
+
+  const accent = cfg.colSlideArtist || '#f0e040';
+  const style = CTA_STYLES.includes(cfg.ctaStyle) ? cfg.ctaStyle : 'card';
+  const medallion = style === 'medallion' && assets.diggujImg;
+
+  if (style === 'plain') {
+    const fit = fitCtaBlock(ctx, cfg, { maxW: W - 180, maxH: H - 380, titleStart: 96, bodyStart: 34, labelSize: 32, accent, shadow: true });
+    ctaBlock(ctx, cfg, { ...fit, y: (H - fit.height) / 2 + 20, draw: true });
+  } else {
+    const cardW = medallion ? 880 : 900;
+    const pad = medallion ? 64 : 70;
+    const r = 105; // promień medalionu
+    const top = medallion ? r + 40 : pad;
+    const fit = fitCtaBlock(ctx, cfg, {
+      maxW: cardW - pad * 2, maxH: H - 280 - top - pad - (medallion ? r : 0),
+      titleStart: medallion ? 84 : 88, bodyStart: 32, labelSize: 30, accent, divider: !medallion, compact: true,
+    });
+    const cardH = top + fit.height + pad;
+    const x = (W - cardW) / 2;
+    const y = (H - cardH) / 2 + (medallion ? r / 2 : 0) + 10;
+    drawGlassRect(canvas, ctx, H, renderScale, x, y, cardW, cardH);
+    if (medallion) drawLogoMedallion(canvas, ctx, H, renderScale, W / 2, y, r, assets.diggujImg, accent);
+    ctaBlock(ctx, cfg, { ...fit, y: y + top, draw: true });
   }
 
-  if (!hideLogo) drawLogosTopRight(ctx, assets, format, 0, 1);
+  // W stylu z medalionem logo jest na środku, więc nie powtarzamy go w rogu
+  if (!hideLogo && !medallion) drawLogosTopRight(ctx, assets, format, 0, 1);
 }
 
 /** Rysuje wszystkie canvasy podglądu (canvases – tablica elementów <canvas>). */
@@ -717,11 +788,6 @@ export function buildVideoSlides(cfg, assets, slides, scale = 1) {
   for (const slide of getActiveSlides(slides)) {
     const c = document.createElement('canvas');
     drawSlide(c, cfg, assets, slide, 'video', false, scale, true);
-    out.push(c);
-  }
-  if (hasCtaSlide(cfg, slides)) {
-    const c = document.createElement('canvas');
-    drawCtaSlide(c, cfg, assets, 'video', scale, true);
     out.push(c);
   }
   return { slides: out, bg };

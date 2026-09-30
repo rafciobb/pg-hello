@@ -12,7 +12,7 @@ Zabezpieczony hasłem panel WWW do tworzenia postów na Instagram: **karuzel 4:5
   - zdjęcia wysyłane na serwer (JPG/PNG/WEBP/GIF) – dostępne z każdego komputera,
   - kadrowanie zdjęć przeciąganiem (także na tablecie – obsługa dotyku),
   - zmiana kolejności slajdów (↑ ↓), usuwanie zdjęć ze slajdów,
-  - **slajd końcowy CTA** („Udostępnij i zrepostuj”) doklejany automatycznie do karuzel, rolek i wideo: tło to ta sama rozmyta okładka co na 1. slajdzie, teksty edytowalne, opcjonalnie „Obserwuj @profil”; domyślne teksty ustawia się raz dla wszystkich nowych postów,
+  - **slajd końcowy CTA** („Udostępnij i zrepostuj”) doklejany automatycznie do karuzel 4:5 (bez rolek i wideo): tło to ta sama rozmyta okładka co na 1. slajdzie, 3 style do wyboru (szklana karta / karta z logo w medalionie / tekst na rozmytym tle), teksty edytowalne, opcjonalnie „Obserwuj @profil”; domyślne ustawienia zapisuje się raz dla wszystkich nowych postów,
   - eksport ZIP (slajdy + `opis_posta.txt`), JPG (kalendarium), wideo MP4 + okładka rolki + opis,
   - podgląd wideo z przejściami, wsad treści z JSON, licznik znaków opisu (limit IG 2200), kopiowanie opisu do schowka,
   - wykrywanie konfliktów: gdy ten sam post jest otwarty w dwóch kartach/na dwóch urządzeniach, panel nie nadpisze po cichu zmian.

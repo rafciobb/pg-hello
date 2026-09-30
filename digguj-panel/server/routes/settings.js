@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { query } from '../db.js';
 
-const CTA_KEYS = ['ctaEnabled', 'ctaLabel', 'ctaTitle', 'ctaText', 'ctaHandle'];
+const CTA_KEYS = ['ctaEnabled', 'ctaStyle', 'ctaLabel', 'ctaTitle', 'ctaText', 'ctaHandle'];
 
 /** Dozwolone klucze ustawień i ich walidacja (zwraca oczyszczoną wartość albo rzuca błąd 400). */
 const VALIDATORS = {
