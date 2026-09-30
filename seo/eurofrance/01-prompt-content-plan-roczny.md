@@ -38,17 +38,29 @@ Artykuły mają być poradnikowe, eksperckie, kompleksowe i realnie pomocne, pis
 </cel>
 
 <brief_klienta>
-**Fakty o firmie** (źródło: komunikat prasowy „EuroFrance – części, na których możesz polegać” w biurze prasowym firmy oraz dane ze strony sklepu):
-- EuroFrance, https://www.eurofrance.pl. Działa od **1997 roku** w **Bielsku-Białej** (al. Gen. W. Andersa 43).
-- **Historia:** w latach 90. specjalizacja w **imporcie używanych części do aut francuskich** (Renault, Peugeot, Citroën, Dacia). W 2001 r. nowy sklep z **magazynem o powierzchni 2000 m²**. Od 2007 r. sprzedaż na Allegro, od 2009 r. własny sklep internetowy.
-- **Profil dziś:** firma stawia przede wszystkim na **części nowe i oryginalne**. W ofercie wciąż są też **części używane**, a sklep sam opisuje asortyment jako „nowe i używane, zamienniki, oryginalne”.
-- **Marki:** rdzeń i dziedzictwo to **Renault, Peugeot, Citroën i Dacia**. Oferta wyszła poza auta francuskie: są też części do **Volkswagena, Nissana, BMW i Audi**.
-- **Skala magazynu** (wg komunikatu): ok. **1 mln** różnych części, w tym ok. **490 silników**, **520 skrzyń biegów**, **8500 elementów karoserii**. Są też układy hamulcowe, radia samochodowe, szyby, błotniki, zderzaki, drzwi, maski, dachy, opony, koła i felgi.
-- **Klienci:** kierowcy, pasjonaci motoryzacji i **warsztaty samochodowe**, z Polski i niemal całej Europy.
-- **Obsługa:** wysyłka następnego dnia roboczego (poza szybami czołowymi), **30 dni na zwrot**, bezpieczne płatności. Sprzedaż równolegle na Allegro.
-- Hasło z komunikatu: **„części, na których możesz polegać”**. Pozycjonowanie opiera się na niezawodności, sprawdzonym pochodzeniu i doświadczeniu od 1997 roku.
+**Fakty o firmie** (źródło: komunikat prasowy firmy „EuroFrance – części, na których możesz polegać”; pozycje oznaczone [*] pochodzą z innych publikacji i ze strony sklepu, zweryfikuj je z klientem):
+- EuroFrance, https://www.eurofrance.pl. Działa od **1997 roku**, zaczynała w **Bielsku-Białej** (al. Gen. W. Andersa 43 [*]). Dziś obsługuje klientów z niemal całej Europy.
+- **Historia:**
+  - lata 90.: specjalizacja w **imporcie używanych części do „francuzów”** (Renault, Peugeot, Citroën, Dacia);
+  - 2001: nowy sklep z **magazynem 2000 m²**;
+  - 2007: start sprzedaży na **Allegro**; 2009: **własny sklep internetowy**;
+  - **od 2015**: mocne postawienie na **nowe, oryginalne części**, a chwilę później **zaawansowana elektronika do wszystkich marek aut** (m.in. sterowniki, nawigacje, pompy ABS);
+  - **2025**: sklepy na **20 nowych rynkach europejskich** (m.in. Skandynawia, Bałkany, kraje bałtyckie).
+- **Profil dziś:** dostawca skupiony **przede wszystkim na częściach nowych i oryginalnych**. Części używane nadal są w ofercie; sklep opisuje asortyment jako „nowe i używane, zamienniki, oryginalne” [*].
+- **Marki:** rdzeń i dziedzictwo to **Renault, Peugeot, Citroën, Dacia**. Firma „dawno wyszła poza ramy francuskiej motoryzacji”: są części m.in. do **Volkswagena, Nissana, BMW i Audi**, a elektronika do wszystkich marek.
+- **Główne grupy asortymentu wg firmy:**
+  1. „serce napędu”: kompletne silniki, skrzynie biegów, układ napędowy;
+  2. elementy bezpieczeństwa: układy hamulcowe i kierownicze;
+  3. części eksploatacyjne: filtry, oświetlenie, zawieszenie;
+  4. zaawansowana elektronika i układy chłodzenia.
+- **Skala magazynu** [*]: ok. 1 mln różnych części, w tym ok. 490 silników, 520 skrzyń biegów i 8500 elementów karoserii.
+- **Zaufanie:** ponad 25 lat doświadczenia, ocena **4.83/5 w Trusted Shops**, ochrona kupującego Trusted Shops.
+- **Dostawa (Polska):** Paczkomaty i kurier InPost, DHL, DPD, UPS. **Silniki wysyłane bezpiecznie na palecie.** Śledzenie przesyłki. [*] Wysyłka następnego dnia roboczego (poza szybami czołowymi), 30 dni na zwrot.
+- **Płatności:** BLIK, Przelewy24 / imoje, karty Visa/Mastercard, PayPal, Stripe.
+- **Klienci:** kierowcy, pasjonaci motoryzacji, **warsztaty** („gdy auto stoi w warsztacie, czas gra główną rolę”).
+- **Hasło i ton marki:** „części, na których możesz polegać”; komunikacja bezpośrednia, na „Ty”, rzeczowa i przyjazna.
 
-Liczby i warunki obsługi pochodzą z komunikatu prasowego i mogły się zmienić. W treściach traktuj je jako „do potwierdzenia z klientem przed publikacją”.
+Liczby (oceny, stany magazynowe, warunki obsługi) mogą się zmieniać. W treściach traktuj je jako „do potwierdzenia z klientem przed publikacją”.
 
 **Do uzupełnienia przeze mnie:**
 - Udział marek w sprzedaży (francuskie vs pozostałe): {{uzupełnij lub „brak danych”}}. Bez danych przyjmij, że **marki francuskie są rdzeniem** (ok. 75–85% tematów związanych z konkretnymi modelami), a VW, Audi, BMW i Nissan to rozszerzenie. Zapisz to w „Założeniach”.
@@ -68,7 +80,10 @@ Liczby i warunki obsługi pochodzą z komunikatu prasowego i mogły się zmieni�
 3. **Duże zespoły** (silniki, skrzynie biegów, karoseria) to wysoka wartość koszyka. Warto planować poradniki typu „jak wybrać używany silnik / skrzynię biegów: co sprawdzić, jakie dokumenty, na co uważać”, „jak dobrać element karoserii w kolorze / kodzie lakieru”.
 4. **Warsztaty to osobna grupa odbiorców.** Rozważ kilka treści bardziej technicznych (np. identyfikacja części po numerze OE, zamienność części między modelami PSA/Renault), ale nie kosztem głównej grupy, czyli kierowców.
 5. Marki spoza Francji (VW, Audi, BMW, Nissan) włączaj tam, gdzie temat jest uniwersalny lub gdzie jest wyraźny popyt, np. wspólne platformy Renault–Nissan (silniki 1.5 dCi, 1.6 dCi w Qashqaiu i Megane).
-6. Jeśli masz dostęp do internetu, sprawdź stronę sklepu (https://www.eurofrance.pl, podstrona „O EuroFrance”) i zaktualizuj fakty.
+6. **Elektronika do wszystkich marek** (sterowniki silnika/ECU, moduły, nawigacje, pompy ABS/ESP) to strategiczny kierunek firmy od 2015 r. i naturalne miejsce na tematy niezależne od marki. Przykłady: czy używany/nowy sterownik trzeba kodować lub adaptować, immobiliser po wymianie sterownika, objawy uszkodzonej pompy ABS, naprawa vs wymiana modułu. To dobry kandydat na osobny klaster z pillarem. Tematy kodowania i immobilizera oznacz jako „Merytoryczne/Prawne” i nie planuj treści o obchodzeniu zabezpieczeń.
+7. **Logistyka dużych zespołów** (silnik na palecie, śledzenie przesyłki) to realny argument w poradnikach o zakupie silnika/skrzyni. Wpleć go w CTA, nie w główną treść.
+8. **Ekspansja na 20 rynków europejskich (2025):** plan dotyczy bloga polskiego, ale w Etapie C wskaż artykuły uniwersalne, które warto później przetłumaczyć lub zlokalizować na inne rynki. Oznacz je w komentarzu tagiem `[INTL]`.
+9. Jeśli masz dostęp do internetu, sprawdź stronę sklepu (https://www.eurofrance.pl, podstrona „O EuroFrance”) i zaktualizuj fakty.
 </brief_klienta>
 
 <dane_wejsciowe>
@@ -81,7 +96,7 @@ Liczby i warunki obsługi pochodzą z komunikatu prasowego i mogły się zmieni�
 <zasady_strategiczne>
 
 ## 1. Topical map i model hub & spoke
-- Najpierw zaprojektuj **mapę tematyczną**: 8–12 klastrów tematycznych opartych na drzewie kategorii, np. „Układ chłodzenia”, „Rozrząd i napęd pomocniczy”, „Sprzęgło i koło dwumasowe”, „Hamulce”, „Zawieszenie (w tym hydropneumatyczne Citroëna)”, „Diagnostyka i kontrolki”, „Układ paliwowy, wtryski i DPF”, „Elektryka i elektronika”, „Klimatyzacja i ogrzewanie”, „Karoseria i oświetlenie”, „Koła i opony”, „Dobór części i zakupy”. To tylko przykłady: dobierz klastry samodzielnie i uzasadnij wybór.
+- Najpierw zaprojektuj **mapę tematyczną**: 8–12 klastrów tematycznych opartych na drzewie kategorii, np. „Układ chłodzenia”, „Rozrząd i napęd pomocniczy”, „Sprzęgło i koło dwumasowe”, „Hamulce”, „Zawieszenie (w tym hydropneumatyczne Citroëna)”, „Diagnostyka i kontrolki”, „Układ paliwowy, wtryski i DPF”, „Elektronika samochodowa (sterowniki, moduły, ABS/ESP)”, „Elektryka (akumulator, rozruch, ładowanie)”, „Silnik i skrzynia biegów – zakup dużych zespołów”, „Klimatyzacja i ogrzewanie”, „Karoseria i oświetlenie”, „Koła i opony”, „Dobór części i zakupy”. To tylko przykłady: dobierz klastry samodzielnie i uzasadnij wybór.
 - Każdy kluczowy klaster ma **1 artykuł filarowy (pillar)**: szeroki, kompendium tematu. Do tego artykuły **cluster** (konkretne problemy/pytania) i ewentualnie **support** (wąskie long-taile, quick-winy).
 - Kolejność publikacji: pillar klastra powinien pojawić się **przed lub razem z** pierwszymi artykułami clusterowymi. Wyjątek: priorytet sezonowy, wtedy zaznacz to w komentarzu.
 - Nie rozdrabniaj się: lepiej dobrze pokryć 8–10 klastrów niż po trochu wszystkie ~25 kategorii głównych. Kategorie o niskim potencjale mogą trafić do backlogu, ale uzasadnij to.
@@ -202,7 +217,8 @@ Wygeneruj tabelę w 4 porcjach (Q1, Q2, Q3, Q4). Po każdej porcji czekaj na `DA
 2. **Mapa linkowania wewnętrznego**: pillar → clustery dla każdego klastra.
 3. **Backlog**: 20–30 dodatkowych tematów rezerwowych (tytuł, fraza główna, klaster, priorytet), na wypadek zmiany priorytetów lub zwiększenia tempa.
 4. **Rekomendacje do procesu**: jak mierzyć efekty (KPI: kliknięcia/wyświetlenia w GSC na klaster, ruch z bloga do kategorii, konwersje wspomagane, widoczność w AI), kiedy robić odświeżenia treści, co zweryfikować w narzędziach przed startem.
-5. **Autokontrola.** Sprawdź i potwierdź punkt po punkcie:
+5. **Artykuły z potencjałem międzynarodowym**: lista ID oznaczonych `[INTL]`, z krótkim uzasadnieniem i uwagą, co trzeba zlokalizować (jednostki, przepisy, nazwy modeli na innych rynkach).
+6. **Autokontrola.** Sprawdź i potwierdź punkt po punkcie:
    - [ ] dokładnie 60 artykułów, po 5 w każdym miesiącu,
    - [ ] brak zdublowanych fraz głównych i nakładających się intencji,
    - [ ] każdy URL kategorii występuje w dostarczonym drzewie (znak w znak),
@@ -219,6 +235,7 @@ Wygeneruj tabelę w 4 porcjach (Q1, Q2, Q3, Q4). Po każdej porcji czekaj na `DA
 <styl>
 - Język: polski, profesjonalny, konkretny. Tytuły mają brzmieć naturalnie, tak jak wpisuje i czyta to polski kierowca.
 - Terminologia zgodna z polską praktyką warsztatową (np. „koło dwumasowe”, „rozrząd”, „świece żarowe”, „sonda lambda”, „FAP/DPF”), z uwzględnieniem potocznych wariantów w frazach wspierających (np. „dwumas”).
+- Ton marki EuroFrance: zwracamy się do czytelnika na „Ty”, rzeczowo, przyjaźnie, jak doświadczony doradca z działu części. Uwzględnij to w tytułach i CTA.
 - Zero ogólników w stylu „ważny element każdego auta”. Każda komórka ma nieść informację.
 </styl>
 
