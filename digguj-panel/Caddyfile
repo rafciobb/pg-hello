@@ -1,0 +1,16 @@
+# Caddy automatycznie pobiera i odnawia certyfikat HTTPS (Let's Encrypt) dla domeny z .env.
+{$DOMAIN} {
+	encode zstd gzip
+
+	request_body {
+		max_size 30MB
+	}
+
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Robots-Tag "noindex, nofollow"
+		-Server
+	}
+
+	reverse_proxy app:3000
+}

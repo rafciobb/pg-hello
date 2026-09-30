@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Posty • DIGGUJ FAKTY</title>
+<link rel="stylesheet" href="/css/base.css">
+<link rel="stylesheet" href="/css/dashboard.css">
+</head>
+<body>
+
+<header class="app-header">
+  <div class="logo-area">
+    <img src="/assets/digguj-fakty.png" alt="" class="header-logo" data-hide-on-error>
+    <h1>DIGGUJ FAKTY</h1>
+    <span class="tag">PANEL POSTÓW</span>
+  </div>
+  <div class="header-actions">
+    <span class="user-name" id="userName"></span>
+    <button class="btn btn-ghost btn-sm" id="passwordBtn" type="button">🔑 ZMIEŃ HASŁO</button>
+    <button class="btn btn-ghost btn-sm" id="logoutBtn" type="button">⎋ WYLOGUJ</button>
+  </div>
+</header>
+
+<main class="dashboard">
+  <section class="new-post">
+    <span class="slabel">➕ Nowy post</span>
+    <div class="new-post-buttons">
+      <button class="btn btn-primary" type="button" data-new-mode="album">💿 ALBUM</button>
+      <button class="btn btn-primary" type="button" data-new-mode="general">🎸 OGÓLNY</button>
+      <button class="btn btn-primary" type="button" data-new-mode="calendar">📅 KALENDARIUM</button>
+    </div>
+  </section>
+
+  <section class="stats" id="stats"></section>
+
+  <section class="toolbar">
+    <input type="search" id="search" placeholder="🔍 Szukaj w tytułach i opisach…">
+    <select id="filterStatus" aria-label="Status">
+      <option value="">Wszystkie statusy</option>
+      <option value="draft">Szkice</option>
+      <option value="ready">Gotowe</option>
+      <option value="scheduled">Zaplanowane</option>
+      <option value="published">Opublikowane</option>
+    </select>
+    <select id="filterMode" aria-label="Tryb">
+      <option value="">Wszystkie tryby</option>
+      <option value="album">💿 Album</option>
+      <option value="general">🎸 Ogólny</option>
+      <option value="calendar">📅 Kalendarium</option>
+    </select>
+    <select id="sort" aria-label="Sortowanie">
+      <option value="updated">Ostatnio edytowane</option>
+      <option value="created">Ostatnio utworzone</option>
+      <option value="scheduled">Wg daty publikacji</option>
+      <option value="feed">Wg numeru w feedzie</option>
+    </select>
+    <button class="btn btn-insta" id="feedBtn" type="button">📱 FEED</button>
+  </section>
+
+  <section class="posts" id="posts" aria-live="polite"></section>
+</main>
+
+<div class="modal" id="feedModal">
+  <div class="modal-panel">
+    <div class="modal-panel-header">
+      <h2>WIZUALIZACJA FEEDA</h2>
+      <button class="modal-close" data-close-modal type="button" aria-label="Zamknij">&times;</button>
+    </div>
+    <p class="feed-hint">Okładki postów według numeru w feedzie (bez kalendariów).</p>
+    <div class="feed-grid" id="feedGrid"></div>
+  </div>
+</div>
+
+<div class="modal" id="passwordModal">
+  <form class="modal-panel narrow" id="passwordForm">
+    <div class="modal-panel-header">
+      <h2>ZMIANA HASŁA</h2>
+      <button class="modal-close" data-close-modal type="button" aria-label="Zamknij">&times;</button>
+    </div>
+    <input type="text" name="username" autocomplete="username" hidden>
+    <div>
+      <label for="currentPassword">Obecne hasło</label>
+      <input type="password" id="currentPassword" autocomplete="current-password" required>
+    </div>
+    <div>
+      <label for="newPassword">Nowe hasło (min. 10 znaków)</label>
+      <input type="password" id="newPassword" autocomplete="new-password" minlength="10" required>
+    </div>
+    <div>
+      <label for="newPassword2">Powtórz nowe hasło</label>
+      <input type="password" id="newPassword2" autocomplete="new-password" minlength="10" required>
+    </div>
+    <div class="form-error" id="passwordError" role="alert"></div>
+    <button class="btn btn-primary" type="submit">ZAPISZ NOWE HASŁO</button>
+  </form>
+</div>
+
+<script type="module" src="/js/dashboard.js"></script>
+</body>
+</html>

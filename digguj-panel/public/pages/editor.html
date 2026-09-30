@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Edytor • DIGGUJ FAKTY</title>
+<link rel="stylesheet" href="/css/base.css">
+<link rel="stylesheet" href="/css/editor.css">
+<script src="/vendor/jszip.min.js" defer></script>
+<script src="/vendor/mp4-muxer.js" defer></script>
+</head>
+<body class="editor-page">
+
+<header class="app-header">
+  <div class="logo-area">
+    <a href="/" class="btn btn-ghost btn-sm" title="Wróć do listy postów">← POSTY</a>
+    <img src="/assets/digguj-fakty.png" alt="" class="header-logo" data-hide-on-error>
+    <h1><a href="/">DIGGUJ FAKTY</a></h1>
+    <span class="tag" id="postTag">EDYTOR</span>
+  </div>
+  <div class="header-actions">
+    <span class="save-status" id="saveStatus" aria-live="polite"></span>
+    <button class="btn btn-secondary" id="saveBtn" type="button" title="Ctrl+S">💾 ZAPISZ</button>
+    <button class="btn btn-primary" id="dlBtn" type="button">⬇ POBIERZ KARUZELĘ (.ZIP)</button>
+  </div>
+</header>
+
+<div class="conflict-banner" id="conflictBanner" hidden>
+  <span>⚠️ Ten post został zmieniony w innej karcie lub na innym urządzeniu. Autozapis wstrzymany.</span>
+  <button class="btn btn-secondary btn-sm" id="conflictReload" type="button">WCZYTAJ NAJNOWSZĄ WERSJĘ</button>
+  <button class="btn btn-danger btn-sm" id="conflictOverwrite" type="button">NADPISZ MOJĄ WERSJĄ</button>
+</div>
+
+<div class="main">
+  <aside class="sidebar" id="sidebar">
+
+    <div class="card">
+      <div class="slabel">🗂️ Publikacja</div>
+      <div class="stack">
+        <div>
+          <label for="postTitle">Nazwa robocza (widoczna na liście postów)</label>
+          <input type="text" id="postTitle" maxlength="200">
+        </div>
+        <div class="row2">
+          <div>
+            <label for="postStatus">Status</label>
+            <select id="postStatus">
+              <option value="draft">Szkic</option>
+              <option value="ready">Gotowy</option>
+              <option value="scheduled">Zaplanowany</option>
+              <option value="published">Opublikowany</option>
+            </select>
+          </div>
+          <div>
+            <label for="feedNumber">Nr posta w feedzie</label>
+            <input type="number" id="feedNumber" min="0">
+          </div>
+        </div>
+        <div>
+          <label for="scheduledAt">Planowana data publikacji</label>
+          <input type="datetime-local" id="scheduledAt">
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="slabel">🎛️ Tryb Postu</div>
+      <div class="mode-switch">
+        <label><input type="radio" name="postMode" value="album" checked><span>💿 Tryb Albumu</span></label>
+        <label><input type="radio" name="postMode" value="general"><span>🎸 Tryb Ogólny</span></label>
+        <label><input type="radio" name="postMode" value="calendar"><span>📅 Kalendarium</span></label>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="slabel">📏 Format Posta</div>
+      <div class="mode-switch">
+        <label><input type="radio" name="postFormat" value="carousel" checked><span>🖼️ Karuzela 4:5</span></label>
+        <label><input type="radio" name="postFormat" value="reel"><span>📱 Rolka 9:16</span></label>
+        <label><input type="radio" name="postFormat" value="video"><span>🎥 Full Wideo</span></label>
+      </div>
+
+      <div id="videoSettings" class="stack video-settings" hidden>
+        <div class="slabel sublabel">Ustawienia Wideo &amp; Animacji</div>
+        <div id="coverDurationContainer">
+          <label for="coverDuration">Czas trwania okładki (1 slajd) <span class="rval" id="coverDurationVal">3s</span></label>
+          <input type="range" id="coverDuration" min="1" max="10" value="3" data-unit="s">
+        </div>
+        <div>
+          <label for="slideDuration">Czas trwania kolejnych slajdów <span class="rval" id="slideDurationVal">4s</span></label>
+          <input type="range" id="slideDuration" min="2" max="30" value="4" data-unit="s">
+          <div id="recommendedTimeHint" class="hint-ok">💡 Rekomendowany czas: 4s</div>
+        </div>
+        <div>
+          <label for="transType">Efekt przejścia</label>
+          <select id="transType">
+            <option value="none">Brak (Ostre cięcie)</option>
+            <option value="fade">Przenikanie (Fade)</option>
+            <option value="slideLeft">Przesunięcie w lewo</option>
+            <option value="slideUp">Przesunięcie w górę</option>
+            <option value="zoom">Powiększenie (Zoom)</option>
+            <option value="flip" selected>Odwrócenie (3D Flip)</option>
+          </select>
+        </div>
+        <button class="btn btn-play btn-block" id="previewVideoBtn" type="button">▶ PODGLĄD WIDEO (PLAY)</button>
+      </div>
+    </div>
+
+    <div class="card" id="feedDataCard">
+      <div class="slabel">📱 Wizualizacja Feeda</div>
+      <div class="stack">
+        <button class="btn btn-secondary btn-block" id="saveFeedCoverBtn" type="button">💾 POBIERZ OKŁADKĘ (.JPG)</button>
+        <button class="btn btn-secondary btn-block" id="feedFolderBtn" type="button" title="Opcjonalnie: dołącz okładki starszych postów, których nie ma w bazie">📂 DOŁĄCZ STARE OKŁADKI Z FOLDERU</button>
+        <input type="file" id="feedFolderInput" webkitdirectory directory multiple hidden>
+        <button class="btn btn-insta btn-block" id="previewFeedBtn" type="button">
+          <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
+          WIZUALIZACJA FEEDA
+        </button>
+      </div>
+    </div>
+
+    <div class="card" id="calendarDataCard" hidden>
+      <div class="slabel">📅 Kartka z Kalendarza (Relacja)</div>
+      <div class="stack">
+        <div>
+          <label for="calDate">Data (np. 28 WRZEŚNIA)</label>
+          <input type="text" id="calDate" placeholder="28 WRZEŚNIA">
+        </div>
+        <div class="range-head">
+          <label for="calAccent">Kolor akcentu (napis „Tego dnia”, paski, poświata)</label>
+          <input type="color" id="calAccent" value="#f0e040" class="color-picker">
+        </div>
+        <div>
+          <label for="calEvents">Wydarzenia (każdy punkt w nowej linii)</label>
+          <textarea id="calEvents" class="tall" placeholder="1991: Nirvana wydaje kultowy album &quot;Nevermind&quot;.&#10;1999: Sting wydaje płytę &quot;Brand New Day&quot;.&#10;2003: Muse prezentuje &quot;Absolution&quot;."></textarea>
+        </div>
+      </div>
+      <p class="note">Tło w tym trybie generuje się automatycznie. Logotypy są wyśrodkowane, a kolor akcentu jest wspólny z kolorem „Wykonawca (Slajdy)” w trybie albumu. <strong>Wielkość fontu dopasowuje się automatycznie. Rok na początku linii zamienia się w białą plakietkę.</strong></p>
+    </div>
+
+    <div class="card" id="albumDataCard">
+      <div class="slabel">Zdjęcie Główne &amp; Informacje</div>
+
+      <div class="upload-zone" id="coverZone">
+        <input type="file" id="coverInput" accept="image/jpeg,image/png,image/webp,image/gif">
+        <div class="ico">🖼️</div>
+        <strong>Wybierz Zdjęcie Główne</strong>
+        <p>Tło całej karuzeli i wizytówka dla Slajdu nr 1</p>
+        <img id="thumbCover" class="thumb-img" alt="" hidden>
+      </div>
+      <button class="link-btn" id="removeCoverBtn" type="button" hidden>✕ usuń zdjęcie główne</button>
+
+      <div class="stack section">
+        <div><label for="coverBlurAmt">Blur tła (wszystkie slajdy) <span class="rval" id="coverBlurAmtVal">15px</span></label><input type="range" id="coverBlurAmt" min="0" max="40" value="15" data-unit="px"></div>
+        <div><label for="coverDimAmt">Przyciemnienie tła (wszystkie slajdy) <span class="rval" id="coverDimAmtVal">50%</span></label><input type="range" id="coverDimAmt" min="0" max="95" value="50" data-unit="%"></div>
+      </div>
+
+      <div class="stack section">
+        <div class="slabel sublabel">Korekcja wielkości i koloru tekstów</div>
+        <div>
+          <div class="range-head">
+            <label for="szArtist">Wykonawca (Okładka) <span class="rval" id="szArtistVal">42px</span></label>
+            <input type="color" id="colArtist" value="#f0e040" class="color-picker" title="Kolor wykonawcy">
+          </div>
+          <input type="range" id="szArtist" min="10" max="120" value="42" data-unit="px">
+        </div>
+        <div>
+          <div class="range-head">
+            <label for="szTitle">Tytuł (Okładka) <span class="rval" id="szTitleVal">90px</span></label>
+            <input type="color" id="colTitle" value="#ffffff" class="color-picker" title="Kolor tytułu">
+          </div>
+          <input type="range" id="szTitle" min="20" max="160" value="90" data-unit="px">
+        </div>
+        <div>
+          <div class="range-head">
+            <label for="szYear">Rok + Wytwórnia (Okładka) <span class="rval" id="szYearVal">26px</span></label>
+            <input type="color" id="colYear" value="#a6a6a6" class="color-picker" title="Kolor roku i wytwórni">
+          </div>
+          <input type="range" id="szYear" min="10" max="80" value="26" data-unit="px">
+        </div>
+        <div>
+          <div class="range-head">
+            <label for="szSlideHeader">Wykonawca + Tytuł (Slajdy) <span class="rval" id="szSlideHeaderVal">106px</span></label>
+            <div class="pickers">
+              <input type="color" id="colSlideArtist" value="#f0e040" class="color-picker" title="Kolor wykonawcy (także akcent kalendarium)">
+              <input type="color" id="colSlideTitle" value="#ffffff" class="color-picker" title="Kolor tytułu">
+            </div>
+          </div>
+          <input type="range" id="szSlideHeader" min="20" max="160" value="106" data-unit="px">
+        </div>
+      </div>
+
+      <div class="stack tight">
+        <div><label for="albumArtist">Artysta</label><input type="text" id="albumArtist" placeholder="Daft Punk"></div>
+        <div><label for="albumTitle">Tytuł Płyty</label><input type="text" id="albumTitle" placeholder="Random Access Memories"></div>
+        <div class="row2">
+          <div><label for="albumYear">Rok</label><input type="text" id="albumYear" placeholder="2013"></div>
+          <div><label for="albumLabel">Wytwórnia</label><input type="text" id="albumLabel" placeholder="Columbia Records"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="slabel">⚡ Wsad Danych (JSON)</div>
+      <button class="btn btn-secondary btn-block" id="toggleJsonBtn" type="button">📄 Wczytaj treść z JSON</button>
+      <div id="jsonZone" class="stack json-zone" hidden>
+        <textarea id="jsonText"></textarea>
+        <button class="btn btn-primary btn-block" id="applyJsonBtn" type="button">ZASTOSUJ DANE</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="slabel">📱 Opis do Posta (Instagram) <span class="counter" id="captionCounter">0 / 2200</span></div>
+      <textarea id="instaCaption" class="tall" placeholder="Wpisz lub wklej opis na Instagrama... (emoji i formatowanie będą zachowane)"></textarea>
+      <button class="btn btn-secondary btn-block" id="copyCaptionBtn" type="button">📋 KOPIUJ OPIS DO SCHOWKA</button>
+    </div>
+
+    <div class="card" id="slidesCard">
+      <div class="slabel">📝 Slajdy Ciekawostek</div>
+      <div id="slidesList"></div>
+      <button class="btn btn-secondary btn-block dashed" id="addSlideBtn" type="button">+ DODAJ NOWY SLAJD</button>
+    </div>
+
+    <div class="bottom-actions">
+      <button class="btn btn-primary" id="refreshBtn" type="button">▶ ODŚWIEŻ</button>
+      <button class="btn btn-danger" id="clearBtn" type="button">🗑️ WYCZYŚĆ TREŚĆ</button>
+    </div>
+  </aside>
+
+  <main class="preview-area">
+    <div class="ph">
+      <h2>PODGLĄD WYGENEROWANYCH SLAJDÓW</h2>
+      <span class="ph-hint">💡 Podpowiedź: Złap i przeciągnij zdjęcie na podglądzie, aby dostosować jego kadr. Kliknij slajd, aby go powiększyć (strzałki ← → przełączają).</span>
+    </div>
+    <div class="canvases" id="canvasContainer"></div>
+    <div id="videoOverlay" class="video-overlay" hidden>
+      <div class="spinner"></div>
+      <div id="videoProgressText">Generowanie wideo (0%)</div>
+      <div class="overlay-note">Trwa renderowanie pliku wideo – nie zamykaj karty.</div>
+    </div>
+  </main>
+</div>
+
+<div class="modal zoom-out" id="slideModal">
+  <button class="modal-close" data-close-modal type="button" aria-label="Zamknij">&times;</button>
+  <img id="modalImg" src="data:," alt="Powiększony slajd">
+</div>
+
+<div class="modal" id="videoPreviewModal">
+  <button class="modal-close" data-close-modal type="button" aria-label="Zamknij">&times;</button>
+  <canvas id="previewCanvas"></canvas>
+</div>
+
+<div class="modal" id="feedModal">
+  <div class="modal-panel">
+    <div class="modal-panel-header">
+      <h2>WIZUALIZACJA FEEDA</h2>
+      <button class="modal-close" data-close-modal type="button" aria-label="Zamknij">&times;</button>
+    </div>
+    <p class="feed-hint">Okładki postów z bazy (według numeru w feedzie) + ewentualnie dołączone stare okładki z folderu.</p>
+    <div class="feed-grid" id="feedGrid"></div>
+  </div>
+</div>
+
+<script type="module" src="/js/editor.js"></script>
+</body>
+</html>

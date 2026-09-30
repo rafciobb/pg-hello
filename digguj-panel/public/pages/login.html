@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Logowanie • DIGGUJ FAKTY</title>
+<link rel="stylesheet" href="/css/base.css">
+<style>
+  body { display: flex; align-items: center; justify-content: center; padding: 16px; }
+  .login-box { width: 100%; max-width: 380px; display: flex; flex-direction: column; gap: 18px; }
+  .login-brand { display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center; }
+  .login-brand img { height: 48px; }
+  .login-brand h1 { font-family: 'Montserrat', sans-serif; font-weight: 900; font-size: 28px; letter-spacing: 1px; color: var(--accent); }
+  form { display: flex; flex-direction: column; gap: 14px; }
+  .btn-primary { padding: 14px; font-size: 13px; }
+</style>
+</head>
+<body>
+  <main class="login-box">
+    <div class="login-brand">
+      <img src="/assets/digguj-fakty.png" alt="" data-hide-on-error>
+      <h1>DIGGUJ FAKTY</h1>
+      <span class="tag">PANEL TWÓRCY</span>
+    </div>
+    <form id="loginForm" class="card" autocomplete="on">
+      <div>
+        <label for="username">Login</label>
+        <input type="text" id="username" name="username" autocomplete="username" required autofocus>
+      </div>
+      <div>
+        <label for="password">Hasło</label>
+        <input type="password" id="password" name="password" autocomplete="current-password" required>
+      </div>
+      <div class="form-error" id="loginError" role="alert"></div>
+      <button class="btn btn-primary" type="submit" id="loginBtn">ZALOGUJ</button>
+    </form>
+  </main>
+  <script type="module" src="/js/login.js"></script>
+</body>
+</html>

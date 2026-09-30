@@ -1,0 +1,33 @@
+{
+  "name": "digguj-panel",
+  "version": "0.1.0",
+  "description": "DIGGUJ FAKTY – panel do tworzenia postów, rolek i kalendariów",
+  "scripts": {
+    "start": "node server/index.js",
+    "dev": "node --watch server/index.js",
+    "migrate": "node scripts/migrate.js",
+    "user:create": "node scripts/create-user.js",
+    "media:cleanup": "node scripts/cleanup-media.js",
+    "test": "node --test --test-concurrency=1"
+  },
+  "license": "UNLICENSED",
+  "dependencies": {
+    "@fontsource/dm-sans": "^5.3.0",
+    "@fontsource/montserrat": "^5.3.0",
+    "@fontsource/space-mono": "^5.3.0",
+    "connect-pg-simple": "^10.0.0",
+    "express": "^5.2.1",
+    "express-rate-limit": "^8.7.0",
+    "express-session": "^1.19.0",
+    "helmet": "^8.3.0",
+    "jszip": "^3.10.2",
+    "mp4-muxer": "^5.2.2",
+    "multer": "^2.4.0",
+    "pg": "^8.23.1"
+  },
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  }
+}
