@@ -93,42 +93,46 @@ npm run dev                      # http://localhost:3000 (restart po każdej zmi
 
 ## Wdrożenie na serwer (VPS) – krok po kroku
 
-**Serwer:** wystarczy najmniejszy VPS z **2 GB RAM** i Ubuntu 24.04 (np. Hetzner CX22, OVH VPS, Mikrus 3.0 itp.). Generowanie grafik i wideo odbywa się w przeglądarce, więc serwer tylko przechowuje dane.
+**Serwer:** VPS albo serwer dedykowany z Ubuntu 22.04/24.04 lub Debianem 12, min. **2 GB RAM** (np. OVH VPS). Generowanie grafik i wideo odbywa się w przeglądarce, więc serwer tylko przechowuje dane.
+Zwykły hosting WWW (współdzielony, np. OVH „Hosting Perso/Pro”) się **nie nada** – nie da się na nim uruchomić Node.js ani Dockera.
 
-**Domena:** w panelu DNS dodaj rekord **A** (np. `panel.twojadomena.pl`) wskazujący na IP serwera.
+### 1. Domena (DNS)
+
+Dodaj rekord **A** wskazujący na IP serwera, np. `panel.twojadomena.pl`.
+W OVH: **Web Cloud → Nazwy domen → Twoja domena → Strefa DNS → Dodaj rekord → A**, subdomena `panel`, cel: adres IPv4 serwera. Zmiana zaczyna działać zwykle po kilku minutach (maks. kilka godzin).
+Jeśli dla tej subdomeny istnieje rekord **AAAA** wskazujący gdzie indziej – usuń go.
+
+Nie masz domeny? Do testów wystarczy darmowy adres `panel.<IP-z-myślnikami>.sslip.io` (np. `panel.51-38-10-20.sslip.io`) – działa bez żadnej konfiguracji DNS, a skrypt instalacyjny sam go podpowie.
+
+### 2. Instalacja (jeden skrypt)
 
 ```bash
-# 1. Zaloguj się na serwer i zainstaluj Dockera
-ssh root@IP_SERWERA
-curl -fsSL https://get.docker.com | sh
+# z własnego komputera (Windows: PowerShell / Terminal; na OVH VPS domyślny użytkownik to "ubuntu" lub "debian")
+ssh ubuntu@IP_SERWERA
 
-# 2. Zapora – tylko SSH i WWW
-ufw allow OpenSSH && ufw allow 80 && ufw allow 443 && ufw enable
-
-# 3. Pobierz projekt
-git clone https://github.com/<twoje-konto>/<repo>.git /opt/digguj
-cd /opt/digguj/digguj-panel
-
-# 4. Konfiguracja
-cp .env.example .env
-nano .env
-#   DOMAIN=panel.twojadomena.pl
-#   POSTGRES_PASSWORD=<openssl rand -hex 24>
-#   SESSION_SECRET=<openssl rand -hex 32>
-
-# 5. Start (pierwsze uruchomienie trwa kilka minut)
-docker compose up -d --build
-
-# 6. Konto
-docker compose exec app node scripts/create-user.js rafal
+# na serwerze
+sudo apt-get update && sudo apt-get install -y git
+git clone -b claude/epic-knuth-y21dv5 https://github.com/rafciobb/pg-hello.git ~/digguj
+cd ~/digguj/digguj-panel
+bash scripts/setup-server.sh
 ```
 
-Gotowe – panel działa pod `https://panel.twojadomena.pl` (certyfikat HTTPS pobiera się sam przy pierwszym wejściu).
+Skrypt `scripts/setup-server.sh` po kolei:
+1. instaluje Dockera,
+2. pyta o domenę i tworzy `.env` z **losowymi** hasłami do bazy i sesji,
+3. sprawdza, czy domena wskazuje na ten serwer,
+4. otwiera w zaporze tylko SSH, HTTP i HTTPS,
+5. buduje i uruchamia panel (Caddy sam pobiera certyfikat HTTPS),
+6. zakłada Twoje konto i (opcjonalnie) codzienną kopię zapasową o 3:15.
+
+Można go bezpiecznie uruchomić ponownie – nie nadpisze istniejącej konfiguracji.
+
+Gotowe – panel działa pod `https://panel.twojadomena.pl`.
 
 ### Aktualizacja do nowej wersji
 
 ```bash
-cd /opt/digguj/digguj-panel
+cd ~/digguj/digguj-panel
 git pull
 docker compose up -d --build     # migracje bazy wykonują się automatycznie przy starcie
 ```
@@ -142,7 +146,7 @@ docker compose up -d --build     # migracje bazy wykonują się automatycznie pr
 Automatycznie co noc (`crontab -e`):
 
 ```
-15 3 * * * cd /opt/digguj/digguj-panel && ./scripts/backup.sh >> backups/backup.log 2>&1
+15 3 * * * cd ~/digguj/digguj-panel && ./scripts/backup.sh >> backups/backup.log 2>&1
 ```
 
 Kopie warto co jakiś czas ściągać poza serwer (np. `rsync`/`scp` na własny komputer albo do chmury).
