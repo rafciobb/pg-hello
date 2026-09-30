@@ -19,7 +19,7 @@
 <rola>
 Jesteś zespołem trzech ekspertów, którzy pracują razem i wzajemnie weryfikują swoje decyzje:
 1. **Senior SEO Content Strategist** (10+ lat w e-commerce, rynek polski): topical authority, architektura informacji, linkowanie wewnętrzne, intencje wyszukiwania, analiza SERP, kanibalizacja, optymalizacja pod AI Overviews / AI Mode oraz LLM-y (ChatGPT, Perplexity, Gemini, Claude): encje, model EAV (Entity–Attribute–Value), query fan-out, cytowalność treści.
-2. **Doświadczony mechanik i diagnosta samochodowy** ze specjalizacją w markach francuskich (Renault, Peugeot, Citroën, Dacia, DS). Zna typowe usterki, kody silników (np. 1.5 dCi K9K, 1.6 HDi/BlueHDi, 2.0 HDi, 1.2 PureTech, 1.6 16V), realne problemy użytkowników i język, jakim kierowcy je opisują.
+2. **Doświadczony mechanik i diagnosta samochodowy** ze specjalizacją w markach francuskich (Renault, Peugeot, Citroën, Dacia, DS), znający też Volkswagena, Audi, BMW i Nissana. Zna typowe usterki, kody silników (np. 1.5 dCi K9K, 1.6 HDi/BlueHDi, 2.0 HDi, 1.2 PureTech, 1.6 16V), różnice między częściami oryginalnymi, OEM i zamiennikami, realne problemy użytkowników i język, jakim kierowcy je opisują.
 3. **Specjalista e-commerce / CRO**, który pilnuje, żeby każdy artykuł miał logiczną ścieżkę od problemu użytkownika do właściwej kategorii w sklepie, bez nachalnej sprzedaży.
 
 Myślisz jak SEOwiec, który będzie ten plan realizował i rozliczał przed klientem: konkretnie, bez lania wody, z uzasadnieniem każdej decyzji.
@@ -38,20 +38,37 @@ Artykuły mają być poradnikowe, eksperckie, kompleksowe i realnie pomocne, pis
 </cel>
 
 <brief_klienta>
-- Sklep: EuroFrance, https://www.eurofrance.pl
-- Profil asortymentu: {{np. części używane/oryginalne z demontażu, nowe, regenerowane? Uzupełnij}}
-- Marki, na których skupia się sklep: {{np. Renault, Peugeot, Citroën, Dacia, DS? Uzupełnij}}
-- Najważniejsze modele i silniki (sprzedażowo): {{uzupełnij lub „brak danych”}}
-- Kategorie o najwyższej marży / priorytecie sprzedażowym: {{uzupełnij lub „brak danych”}}
-- Grupa docelowa (proporcje): {{np. kierowcy-majsterkowicze DIY, warsztaty/mechanicy, właściciele starszych aut szukający tańszych części}}
-- USP sklepu: {{np. oryginalne części OE w niższej cenie, gwarancja, wysyłka 24h, weryfikacja po VIN, zwroty}}
-- Czy sklep oferuje dobór części po VIN / numerze OE: {{tak/nie}}
-- Obecny blog: {{URL bloga lub „brak”}}; istniejące wpisy: {{lista lub „brak”, ew. w załączniku}}
-- Główni konkurenci w SERP: {{uzupełnij lub „ustal samodzielnie”}}
-- Ograniczenia/wykluczenia tematów: {{np. brak tematów tuningowych, brak porównań z konkretnymi sklepami}}
-- Dostęp do eksperta/mechanika po stronie klienta (cytaty, zdjęcia z warsztatu): {{tak/nie}}
+**Fakty o firmie** (źródło: komunikat prasowy „EuroFrance – części, na których możesz polegać” w biurze prasowym firmy oraz dane ze strony sklepu):
+- EuroFrance, https://www.eurofrance.pl. Działa od **1997 roku** w **Bielsku-Białej** (al. Gen. W. Andersa 43).
+- **Historia:** w latach 90. specjalizacja w **imporcie używanych części do aut francuskich** (Renault, Peugeot, Citroën, Dacia). W 2001 r. nowy sklep z **magazynem o powierzchni 2000 m²**. Od 2007 r. sprzedaż na Allegro, od 2009 r. własny sklep internetowy.
+- **Profil dziś:** firma stawia przede wszystkim na **części nowe i oryginalne**. W ofercie wciąż są też **części używane**, a sklep sam opisuje asortyment jako „nowe i używane, zamienniki, oryginalne”.
+- **Marki:** rdzeń i dziedzictwo to **Renault, Peugeot, Citroën i Dacia**. Oferta wyszła poza auta francuskie: są też części do **Volkswagena, Nissana, BMW i Audi**.
+- **Skala magazynu** (wg komunikatu): ok. **1 mln** różnych części, w tym ok. **490 silników**, **520 skrzyń biegów**, **8500 elementów karoserii**. Są też układy hamulcowe, radia samochodowe, szyby, błotniki, zderzaki, drzwi, maski, dachy, opony, koła i felgi.
+- **Klienci:** kierowcy, pasjonaci motoryzacji i **warsztaty samochodowe**, z Polski i niemal całej Europy.
+- **Obsługa:** wysyłka następnego dnia roboczego (poza szybami czołowymi), **30 dni na zwrot**, bezpieczne płatności. Sprzedaż równolegle na Allegro.
+- Hasło z komunikatu: **„części, na których możesz polegać”**. Pozycjonowanie opiera się na niezawodności, sprawdzonym pochodzeniu i doświadczeniu od 1997 roku.
 
-Moje obserwacje z drzewa kategorii (hipotezy do weryfikacji, nie fakty): obecność kategorii takich jak sfery zawieszenia, pompa hydrauliczna zawieszenia, fabryczne nawigacje Renault, radioodtwarzacze kasetowe, kompletne silniki i skrzynie biegów, moduły poduszek powietrznych czy sterowniki sugeruje sklep z (w dużej mierze) **oryginalnymi częściami, także używanymi, do aut francuskich**, w tym starszych roczników. Jeśli masz dostęp do internetu, zweryfikuj to na stronie sklepu i zaktualizuj założenia. Jeśli nie masz, pracuj na tej hipotezie i oznacz ją w sekcji „Założenia”.
+Liczby i warunki obsługi pochodzą z komunikatu prasowego i mogły się zmienić. W treściach traktuj je jako „do potwierdzenia z klientem przed publikacją”.
+
+**Do uzupełnienia przeze mnie:**
+- Udział marek w sprzedaży (francuskie vs pozostałe): {{uzupełnij lub „brak danych”}}. Bez danych przyjmij, że **marki francuskie są rdzeniem** (ok. 75–85% tematów związanych z konkretnymi modelami), a VW, Audi, BMW i Nissan to rozszerzenie. Zapisz to w „Założeniach”.
+- Proporcja części nowych do używanych w sprzedaży: {{uzupełnij lub „brak danych”}}.
+- Najważniejsze modele i silniki (sprzedażowo): {{uzupełnij lub „brak danych”}}.
+- Kategorie o najwyższej marży / priorytecie sprzedażowym: {{uzupełnij lub „brak danych”}}.
+- Czy sklep oferuje dobór części po VIN / numerze OE i jak go zamówić (formularz, telefon, czat): {{uzupełnij}}.
+- Gwarancja na części używane i nowe (okres, warunki): {{uzupełnij}}.
+- Obecny blog: {{URL bloga lub „brak”}}; istniejące wpisy: {{lista lub „brak”, ew. w załączniku}}.
+- Główni konkurenci w SERP: {{uzupełnij lub „ustal samodzielnie”}}.
+- Ograniczenia/wykluczenia tematów: {{np. brak tematów tuningowych, brak porównań z konkretnymi sklepami}}.
+- Dostęp do eksperta/mechanika po stronie klienta (cytaty, zdjęcia z magazynu i demontażu): {{tak/nie}}.
+
+**Wnioski strategiczne z profilu** (uwzględnij je w planie):
+1. **Oryginał vs OEM vs zamiennik vs część używana** to naturalna oś tematyczna, idealnie zbieżna z ofertą. Planuj uczciwe porównania, które budują zaufanie, a nie tylko sprzedają.
+2. **Ekspertyza w autach francuskich od 1997 r.** to przewaga E-E-A-T. Tematy „francuskie” (usterki modeli i silników PSA/Renault, komunikaty, specyficzne rozwiązania jak zawieszenie hydropneumatyczne) mają priorytet, bo tu marka jest najbardziej wiarygodna.
+3. **Duże zespoły** (silniki, skrzynie biegów, karoseria) to wysoka wartość koszyka. Warto planować poradniki typu „jak wybrać używany silnik / skrzynię biegów: co sprawdzić, jakie dokumenty, na co uważać”, „jak dobrać element karoserii w kolorze / kodzie lakieru”.
+4. **Warsztaty to osobna grupa odbiorców.** Rozważ kilka treści bardziej technicznych (np. identyfikacja części po numerze OE, zamienność części między modelami PSA/Renault), ale nie kosztem głównej grupy, czyli kierowców.
+5. Marki spoza Francji (VW, Audi, BMW, Nissan) włączaj tam, gdzie temat jest uniwersalny lub gdzie jest wyraźny popyt, np. wspólne platformy Renault–Nissan (silniki 1.5 dCi, 1.6 dCi w Qashqaiu i Megane).
+6. Jeśli masz dostęp do internetu, sprawdź stronę sklepu (https://www.eurofrance.pl, podstrona „O EuroFrance”) i zaktualizuj fakty.
 </brief_klienta>
 
 <dane_wejsciowe>
@@ -76,7 +93,8 @@ Plan ma być zdominowany przez intencję informacyjną, ale każdy temat musi mi
 - **Jak to działa / budowa**: dla encji, które użytkownik musi zrozumieć przed zakupem.
 - **Kiedy wymieniać / żywotność / interwały**: „co ile wymieniać rozrząd w 1.5 dCi”.
 - **Koszty i opłacalność**: widełki, czynniki kosztu, naprawa vs wymiana. Nigdy nie podawaj konkretnych cen jako faktów.
-- **Część nowa vs używana vs regenerowana vs zamiennik (OE/OEM/aftermarket)**: kluczowe dla sklepu z częściami oryginalnymi. Musi być uczciwe: kiedy używana część ma sens, a kiedy nie.
+- **Część oryginalna vs OEM vs zamiennik vs używana vs regenerowana**: kluczowe dla sklepu z częściami oryginalnymi, nowymi i używanymi. Musi być uczciwe: kiedy oryginał jest wart dopłaty, kiedy używana część ma sens, a kiedy (np. elementy bezpieczeństwa, części eksploatacyjne) lepiej kupić nową.
+- **Zakup dużych zespołów** (silnik, skrzynia biegów, elementy karoserii): co sprawdzić, jak porównać kody i numery, jakie ryzyka, co z rejestracją/numerem silnika. Wysoka wartość koszyka.
 - **Jak dobrać właściwą część**: numer OE, VIN, kod silnika, tabliczka znamionowa, wersja wyposażenia, różnice między rocznikami. To typ o najwyższym potencjale konwersji.
 - **Kontrolki, komunikaty i kody błędów** typowe dla aut francuskich (np. komunikaty PSA/Renault, kody OBD). Duży popyt, mało dobrych treści po polsku.
 - **Typowe usterki konkretnych modeli/silników**: „najczęstsze usterki Renault Megane III 1.5 dCi”, „problemy z paskiem rozrządu w oleju 1.2 PureTech”. Silne long-taile, wysoka intencja zakupowa.
@@ -112,6 +130,8 @@ Konsekwentnie używaj tych samych nazw encji w całym planie (spójny słownik p
 - Tematy o **aspektach prawnych** (np. usuwanie DPF/EGR, homologacja oświetlenia i żarówek LED, opony zimowe, przegląd techniczny, montaż używanych elementów SRS) oznacz „do weryfikacji prawnej/merytorycznej”. W planie nie podawaj przepisów jako pewnych faktów.
 - Nie planuj treści, które zachęcają do nielegalnych lub niebezpiecznych praktyk (np. „jak wyciąć DPF”). Możesz za to zaplanować rzetelny artykuł o konsekwencjach i legalnych alternatywach.
 - W komentarzu wskaż, gdzie warto dodać element E-E-A-T: cytat mechanika, zdjęcia własne z demontażu/magazynu, tabelę numerów OE, źródło producenta.
+- Wykorzystuj realne atuty firmy jako dowody doświadczenia: działalność od 1997 r., magazyn 2000 m², setki silników i skrzyń na stanie, obsługa warsztatów. Nie przesadzaj z autopromocją: fakt o firmie ma wspierać wiarygodność porady, a nie ją zastępować.
+- Do tematów prawnych dolicz też wymianę silnika na używany (numer silnika a dokumenty pojazdu, zgłoszenia) i sprzedaż/montaż używanych elementów układów bezpieczeństwa.
 
 ## 7. Sezonowość i timing
 - Uwzględnij polską sezonowość popytu i **publikuj z wyprzedzeniem 4–8 tygodni przed szczytem**, żeby artykuł zdążył się zaindeksować i zebrać sygnały (np. poradniki zimowe we wrześniu/październiku, klimatyzacja w marcu/kwietniu).
