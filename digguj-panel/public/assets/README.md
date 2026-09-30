@@ -1,6 +1,6 @@
-Wrzuć tutaj swoje logotypy (są rysowane na slajdach i w nagłówku panelu):
+Logotypy rysowane na slajdach i w nagłówku panelu:
 
-- `logo.png` – małe, kwadratowe logo (rysowane jako 55×55 px)
-- `digguj-fakty.png` – logotyp „DIGGUJ FAKTY” (dawny plik `diguj fakty.png`, rysowany na szerokość 150 px)
+- `digguj-fakty.png` – główne logo „DIGGUJ FAKTY” (już dodane; rysowane na szerokość 150 px w prawym górnym rogu slajdów)
+- `logo.png` – opcjonalne drugie, małe logo (rysowane jako 55×55 px obok głównego)
 
 Jeśli pliku nie ma, panel po prostu go pomija.

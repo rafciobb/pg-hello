@@ -10,7 +10,6 @@ const SORTS = {
   updated: 'p.updated_at DESC',
   created: 'p.created_at DESC',
   scheduled: 'p.scheduled_at ASC NULLS LAST, p.updated_at DESC',
-  feed: 'p.feed_number DESC NULLS LAST, p.updated_at DESC',
 };
 
 const MAX_THUMB_BYTES = 1024 * 1024;
@@ -28,7 +27,6 @@ function serialize(row, { full = false } = {}) {
     status: row.status,
     scheduledAt: row.scheduled_at,
     publishedAt: row.published_at,
-    feedNumber: row.feed_number,
     caption: row.caption,
     thumbUrl: mediaUrl(row.thumb_media_id),
     version: row.version,
@@ -70,14 +68,6 @@ function parsePostInput(body) {
       out.scheduledAt = d;
     }
   }
-  if ('feedNumber' in body) {
-    if (body.feedNumber === null || body.feedNumber === '') out.feedNumber = null;
-    else {
-      const n = Number(body.feedNumber);
-      if (!Number.isInteger(n) || n < 0 || n > 1_000_000) throw new ValidationError('Nieprawidłowy numer posta w feedzie.');
-      out.feedNumber = n;
-    }
-  }
   if ('caption' in body) {
     if (typeof body.caption !== 'string' || body.caption.length > 10_000) throw new ValidationError('Opis: maks. 10 000 znaków.');
     out.caption = body.caption;
@@ -98,7 +88,7 @@ function parsePostInput(body) {
 
 const COLUMN = {
   title: 'title', mode: 'mode', format: 'format', status: 'status', scheduledAt: 'scheduled_at',
-  feedNumber: 'feed_number', caption: 'caption', data: 'data',
+  caption: 'caption', data: 'data',
 };
 
 function parseId(req) {
@@ -116,11 +106,6 @@ async function replaceThumbnail(postId, buffer, userId) {
   );
   await deleteMedia(rows[0]?.old);
   return newId;
-}
-
-async function nextFeedNumber() {
-  const { rows } = await query(`SELECT COALESCE(MAX(feed_number), 0) + 1 AS n FROM posts WHERE mode <> 'calendar'`);
-  return rows[0].n;
 }
 
 export const postsRouter = Router();
@@ -144,18 +129,6 @@ postsRouter.get('/', async (req, res) => {
   res.json({ posts: rows.map((r) => serialize(r)) });
 });
 
-/** Posty do wizualizacji siatki profilu (bez kalendariów, które idą w relacje). */
-postsRouter.get('/feed', async (_req, res) => {
-  const { rows } = await query(
-    `SELECT id, title, feed_number, thumb_media_id, status FROM posts
-     WHERE mode <> 'calendar' AND feed_number IS NOT NULL
-     ORDER BY feed_number DESC, id DESC LIMIT 300`,
-  );
-  res.json({
-    posts: rows.map((r) => ({ id: r.id, title: r.title, feedNumber: r.feed_number, status: r.status, thumbUrl: mediaUrl(r.thumb_media_id) })),
-  });
-});
-
 postsRouter.get('/:id', async (req, res) => {
   const { rows } = await query(`${SELECT_POST} WHERE p.id = $1`, [parseId(req)]);
   if (!rows[0]) return res.status(404).json({ error: 'Nie znaleziono posta.' });
@@ -165,12 +138,11 @@ postsRouter.get('/:id', async (req, res) => {
 postsRouter.post('/', async (req, res) => {
   const input = parsePostInput({ mode: 'album', format: 'carousel', data: {}, ...req.body });
   if (input.mode === 'calendar' && !('format' in (req.body ?? {}))) input.format = 'reel';
-  const feedNumber = 'feedNumber' in input ? input.feedNumber : (input.mode === 'calendar' ? null : await nextFeedNumber());
   const { rows } = await query(
-    `INSERT INTO posts (title, mode, format, status, scheduled_at, feed_number, caption, data, created_by, updated_by)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8::jsonb, $9, $9) RETURNING id`,
+    `INSERT INTO posts (title, mode, format, status, scheduled_at, caption, data, created_by, updated_by)
+     VALUES ($1, $2, $3, $4, $5, $6, $7::jsonb, $8, $8) RETURNING id`,
     [input.title ?? '', input.mode, input.format, input.status ?? 'draft', input.scheduledAt ?? null,
-      feedNumber, input.caption ?? '', JSON.stringify(input.data), req.user.id],
+      input.caption ?? '', JSON.stringify(input.data), req.user.id],
   );
   const id = rows[0].id;
   if (input.thumbnail) await replaceThumbnail(id, input.thumbnail, req.user.id);
@@ -224,10 +196,9 @@ postsRouter.post('/:id/duplicate', async (req, res) => {
   if (!src) return res.status(404).json({ error: 'Nie znaleziono posta.' });
   const thumbId = src.thumb_media_id ? await copyMedia(src.thumb_media_id, { userId: req.user.id }) : null;
   const inserted = await query(
-    `INSERT INTO posts (title, mode, format, status, feed_number, caption, data, thumb_media_id, created_by, updated_by)
-     VALUES ($1, $2, $3, 'draft', $4, $5, $6::jsonb, $7, $8, $8) RETURNING id`,
-    [`${src.title} (kopia)`.slice(0, 200), src.mode, src.format,
-      src.mode === 'calendar' ? null : await nextFeedNumber(), src.caption,
+    `INSERT INTO posts (title, mode, format, status, caption, data, thumb_media_id, created_by, updated_by)
+     VALUES ($1, $2, $3, 'draft', $4, $5::jsonb, $6, $7, $7) RETURNING id`,
+    [`${src.title} (kopia)`.slice(0, 200), src.mode, src.format, src.caption,
       JSON.stringify({ ...src.data, customTitle: src.data?.customTitle ? `${src.data.customTitle} (kopia)` : undefined }),
       thumbId, req.user.id],
   );

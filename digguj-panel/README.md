@@ -15,7 +15,6 @@ Zabezpieczony hasłem panel WWW do tworzenia postów na Instagram: **karuzel 4:5
   - eksport ZIP (slajdy + `opis_posta.txt`), JPG (kalendarium), wideo MP4 + okładka rolki + opis,
   - podgląd wideo z przejściami, wsad treści z JSON, licznik znaków opisu (limit IG 2200), kopiowanie opisu do schowka,
   - wykrywanie konfliktów: gdy ten sam post jest otwarty w dwóch kartach/na dwóch urządzeniach, panel nie nadpisze po cichu zmian.
-- **Wizualizacja feeda** – siatka z okładek zapisanych postów (wg numeru w feedzie) + opcjonalnie stare okładki z folderu.
 
 ## Technologia
 
@@ -50,7 +49,7 @@ digguj-panel/
 │   │   ├── dashboard.js    # lista postów
 │   │   ├── api.js, ui.js   # komunikacja z serwerem, drobne elementy UI
 │   │   └── login.js
-│   └── assets/             # TWOJE LOGOTYPY: logo.png, digguj-fakty.png
+│   └── assets/             # logotypy: digguj-fakty.png (+ opcjonalnie logo.png)
 ├── scripts/                # create-user, migrate, cleanup-media, backup.sh
 ├── test/                   # testy API
 ├── Dockerfile, docker-compose.yml, Caddyfile
@@ -59,10 +58,7 @@ digguj-panel/
 
 ## Logotypy
 
-Skopiuj swoje pliki do `public/assets/`:
-
-- `logo.png` → `public/assets/logo.png`
-- `diguj fakty.png` → **`public/assets/digguj-fakty.png`** (zmiana nazwy – bez spacji)
+Główne logo „DIGGUJ FAKTY” jest już w `public/assets/digguj-fakty.png`. Opcjonalnie możesz dodać drugie, małe logo jako `public/assets/logo.png` – pojawi się obok głównego (55×55 px).
 
 ## Uruchomienie lokalnie (na własnym komputerze)
 
@@ -111,13 +107,10 @@ nano .env
 #   POSTGRES_PASSWORD=<openssl rand -hex 24>
 #   SESSION_SECRET=<openssl rand -hex 32>
 
-# 5. Logotypy → public/assets/logo.png, public/assets/digguj-fakty.png
-#    (np. scp z własnego komputera)
-
-# 6. Start (pierwsze uruchomienie trwa kilka minut)
+# 5. Start (pierwsze uruchomienie trwa kilka minut)
 docker compose up -d --build
 
-# 7. Konto
+# 6. Konto
 docker compose exec app node scripts/create-user.js rafal
 ```
 
@@ -200,7 +193,6 @@ TEST_DATABASE_URL=postgres://digguj:haslo@localhost:5432/digguj_test npm test
 |---|---|---|
 | POST | `/api/auth/login` · `/api/auth/logout` · `/api/auth/password` | logowanie / wylogowanie / zmiana hasła |
 | GET | `/api/posts?q=&status=&mode=&sort=` | lista postów |
-| GET | `/api/posts/feed` | posty do siatki feeda |
 | GET · PUT · DELETE | `/api/posts/:id` | pobranie / zapis (wymaga `version`) / usunięcie |
 | POST | `/api/posts` · `/api/posts/:id/duplicate` | nowy post / kopia |
 | POST | `/api/media` | upload zdjęcia (`multipart/form-data`, pole `file`) |
@@ -219,4 +211,4 @@ Zapytania zmieniające dane muszą mieć nagłówek `X-Requested-With: digguj`.
 
 ## Migracja z wersji lokalnej (Live Server)
 
-Stara wersja trzymała dane w przeglądarce (IndexedDB) – nie przeniosą się automatycznie. Aby przenieść aktualnie otwarty post: utwórz nowy post w panelu i wklej treść przez **⚡ Wsad Danych (JSON)** (np. `{"mode":"album","artist":"…","title":"…","slides":[{"text":"…"}]}`), a zdjęcia wgraj ponownie. Stare okładki do wizualizacji feeda możesz dołączyć przyciskiem **📂 Dołącz stare okładki z folderu**.
+Stara wersja trzymała dane w przeglądarce (IndexedDB) – nie przeniosą się automatycznie. Aby przenieść aktualnie otwarty post: utwórz nowy post w panelu i wklej treść przez **⚡ Wsad Danych (JSON)** (np. `{"mode":"album","artist":"…","title":"…","slides":[{"text":"…"}]}`), a zdjęcia wgraj ponownie.

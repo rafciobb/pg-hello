@@ -1,7 +1,7 @@
 import { api, logout } from './api.js';
 import {
   $, FORMAT_LABELS, MODE_LABELS, STATUS_LABELS, closeModal, esc, formatDate, hideBrokenImages, openModal,
-  renderFeedGrid, setupModals, toast,
+  setupModals, toast,
 } from './ui.js';
 
 let posts = [];
@@ -53,7 +53,6 @@ function renderPosts() {
     <article class="post-card" data-id="${p.id}">
       <a class="post-thumb" href="/editor?id=${p.id}">
         ${p.thumbUrl ? `<img src="${esc(p.thumbUrl)}" alt="" loading="lazy">` : '<span class="no-thumb">Brak podglądu</span>'}
-        ${p.feedNumber != null && p.mode !== 'calendar' ? `<span class="feed-no">#${p.feedNumber}</span>` : ''}
       </a>
       <div class="post-body">
         <a class="post-title" href="/editor?id=${p.id}">${esc(p.title || 'Bez tytułu')}</a>
@@ -117,16 +116,6 @@ async function onPostAction(e) {
   }
 }
 
-async function showFeed() {
-  try {
-    const { posts: feed } = await api('/api/posts/feed');
-    renderFeedGrid($('feedGrid'), feed.map((p) => ({ num: p.feedNumber, src: p.thumbUrl, title: p.title })));
-    openModal('feedModal');
-  } catch (err) {
-    toast(err.message, 'error');
-  }
-}
-
 async function changePassword(e) {
   e.preventDefault();
   const err = $('passwordError');
@@ -174,7 +163,6 @@ async function init() {
   });
   $('posts').addEventListener('click', onPostAction);
   $('posts').addEventListener('change', onPostAction);
-  $('feedBtn').addEventListener('click', showFeed);
   $('logoutBtn').addEventListener('click', logout);
   $('passwordBtn').addEventListener('click', () => { openModal('passwordModal'); $('currentPassword').focus(); });
   $('passwordForm').addEventListener('submit', changePassword);

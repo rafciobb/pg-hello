@@ -77,16 +77,13 @@ describe('API panelu', { skip: !TEST_DB && 'ustaw TEST_DATABASE_URL, aby uruchom
   });
 
   let post;
-  test('tworzenie postów i numeracja feeda', async () => {
+  test('tworzenie postów', async () => {
     const a = await req('POST', '/api/posts', { body: { mode: 'album' } });
     assert.equal(a.status, 201);
-    assert.equal(a.data.post.feedNumber, 1);
     assert.equal(a.data.post.format, 'carousel');
     const cal = await req('POST', '/api/posts', { body: { mode: 'calendar' } });
     assert.equal(cal.data.post.format, 'reel');
-    assert.equal(cal.data.post.feedNumber, null);
-    const b = await req('POST', '/api/posts', { body: { mode: 'general' } });
-    assert.equal(b.data.post.feedNumber, 2);
+    assert.equal((await req('POST', '/api/posts', { body: { mode: 'general' } })).status, 201);
     assert.equal((await req('POST', '/api/posts', { body: { mode: 'hack' } })).status, 400);
     post = a.data.post;
   });
@@ -134,20 +131,18 @@ describe('API panelu', { skip: !TEST_DB && 'ustaw TEST_DATABASE_URL, aby uruchom
     post = published.data.post;
   });
 
-  test('lista, wyszukiwanie, feed', async () => {
+  test('lista i wyszukiwanie', async () => {
     const list = await req('GET', '/api/posts?q=daft');
     assert.equal(list.data.posts.length, 1);
     assert.equal(list.data.posts[0].data, undefined, 'lista nie zwraca pełnych danych edytora');
     assert.equal((await req('GET', '/api/posts?status=published')).data.posts.length, 1);
-    const feed = await req('GET', '/api/posts/feed');
-    assert.deepEqual(feed.data.posts.map((p) => p.feedNumber), [2, 1]);
+    assert.equal((await req('GET', '/api/posts?mode=calendar')).data.posts.length, 1);
   });
 
   test('duplikowanie i usuwanie', async () => {
     const dup = await req('POST', `/api/posts/${post.id}/duplicate`);
     assert.equal(dup.status, 201);
     assert.equal(dup.data.post.status, 'draft');
-    assert.equal(dup.data.post.feedNumber, 3);
     assert.notEqual(dup.data.post.thumbUrl, post.thumbUrl);
     assert.equal((await req('DELETE', `/api/posts/${post.id}`)).status, 200);
     assert.equal((await req('GET', `/api/posts/${post.id}`)).status, 404);

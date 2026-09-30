@@ -54,24 +54,11 @@
       <option value="updated">Ostatnio edytowane</option>
       <option value="created">Ostatnio utworzone</option>
       <option value="scheduled">Wg daty publikacji</option>
-      <option value="feed">Wg numeru w feedzie</option>
     </select>
-    <button class="btn btn-insta" id="feedBtn" type="button">📱 FEED</button>
   </section>
 
   <section class="posts" id="posts" aria-live="polite"></section>
 </main>
-
-<div class="modal" id="feedModal">
-  <div class="modal-panel">
-    <div class="modal-panel-header">
-      <h2>WIZUALIZACJA FEEDA</h2>
-      <button class="modal-close" data-close-modal type="button" aria-label="Zamknij">&times;</button>
-    </div>
-    <p class="feed-hint">Okładki postów według numeru w feedzie (bez kalendariów).</p>
-    <div class="feed-grid" id="feedGrid"></div>
-  </div>
-</div>
 
 <div class="modal" id="passwordModal">
   <form class="modal-panel narrow" id="passwordForm">

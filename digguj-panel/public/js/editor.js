@@ -1,6 +1,6 @@
 import { api } from './api.js';
 import {
-  $, closeModal, fromLocalInput, hideBrokenImages, openModal, renderFeedGrid, setupModals, toast, toLocalInput,
+  $, fromLocalInput, hideBrokenImages, openModal, setupModals, toast, toLocalInput,
 } from './ui.js';
 import * as R from './render.js';
 import { VideoPreview, canvasToBlob, downloadBlob, exportCarouselZip, exportVideoZip, safeFilename } from './export.js';
@@ -19,7 +19,6 @@ let coverMediaId = null;
 let slides = [];
 let version = 0;
 let lastSavedAt = null;
-let feedFolderImages = [];
 let modalIndex = -1;
 const videoPreview = new VideoPreview($('previewCanvas'));
 
@@ -206,7 +205,6 @@ function applyModeUI() {
   $('albumDataCard').hidden = mode !== 'album';
   $('calendarDataCard').hidden = mode !== 'calendar';
   $('slidesCard').hidden = mode === 'calendar';
-  $('feedDataCard').hidden = mode === 'calendar';
   $('coverDurationContainer').hidden = mode !== 'album';
   $('calAccent').value = $('colSlideArtist').value;
   $('jsonText').placeholder = mode === 'calendar'
@@ -374,7 +372,6 @@ function buildPayload() {
   data.slides = slides.map((s) => ({
     text: s.text, mediaId: s.mediaId || null, panX: Math.round(s.panX || 0), panY: Math.round(s.panY || 0),
   }));
-  const feed = parseInt($('feedNumber').value, 10);
   return {
     version,
     title: data.customTitle || deriveTitle(cfg),
@@ -382,7 +379,6 @@ function buildPayload() {
     format: cfg.postFormat,
     status: $('postStatus').value,
     scheduledAt: fromLocalInput($('scheduledAt').value),
-    feedNumber: Number.isInteger(feed) && feed >= 0 ? feed : null,
     caption: $('instaCaption').value,
     data,
   };
@@ -450,7 +446,6 @@ async function loadPost() {
   writeFields({ ...R.DEFAULTS, ...data });
   $('postTitle').value = data.customTitle || '';
   $('postStatus').value = post.status;
-  $('feedNumber').value = post.feedNumber ?? '';
   $('scheduledAt').value = toLocalInput(post.scheduledAt);
   $('instaCaption').value = post.caption || '';
   $('postTag').textContent = `POST #${post.id}`;
@@ -507,7 +502,7 @@ function applyJson() {
 }
 
 function clearContent() {
-  if (!confirm('🚨 Wyczyścić całą treść tego posta (teksty, zdjęcia, opis i ustawienia wyglądu)?\nStatus, data i numer w feedzie zostaną.')) return;
+  if (!confirm('🚨 Wyczyścić całą treść tego posta (teksty, zdjęcia, opis i ustawienia wyglądu)?\nStatus i data publikacji zostaną.')) return;
   writeFields(R.DEFAULTS);
   $('calAccent').value = $('colSlideArtist').value;
   $('postTitle').value = '';
@@ -518,58 +513,6 @@ function clearContent() {
   updateCoverThumb();
   updateCaptionCounter();
   slidesChanged();
-}
-
-// ─────────────────────────────── Feed ───────────────────────────────
-function loadFeedFolder(files) {
-  const imageFiles = [...files].filter((f) => f.type.startsWith('image/'));
-  if (!imageFiles.length) return alert('Nie znaleziono zdjęć w folderze.');
-  let maxNum = 0;
-  Promise.all(imageFiles.map((file) => new Promise((resolve) => {
-    const match = file.name.match(/(\d+)/);
-    const num = match ? parseInt(match[1], 10) : 0;
-    maxNum = Math.max(maxNum, num);
-    const reader = new FileReader();
-    reader.onload = (e) => resolve({ num, src: e.target.result, title: file.name });
-    reader.onerror = () => resolve(null);
-    reader.readAsDataURL(file);
-  }))).then((items) => {
-    feedFolderImages = items.filter(Boolean);
-    const current = parseInt($('feedNumber').value, 10);
-    if (!Number.isInteger(current) || current <= maxNum) {
-      $('feedNumber').value = maxNum + 1;
-      markDirty();
-    }
-    toast(`Wczytano ${feedFolderImages.length} okładek z folderu.`, 'ok');
-  });
-}
-
-async function previewFeed() {
-  if (renderQueued) renderNow();
-  if (!previewCanvases().length) return alert('Najpierw uzupełnij treść, aby wygenerować okładkę.');
-  let dbItems = [];
-  try {
-    dbItems = (await api('/api/posts/feed')).posts;
-  } catch (err) {
-    toast(err.message, 'error');
-  }
-  const items = dbItems.filter((p) => p.id !== postId).map((p) => ({ num: p.feedNumber, src: p.thumbUrl, title: p.title }));
-  const taken = new Set(items.map((i) => i.num));
-  for (const f of feedFolderImages) if (!taken.has(f.num)) items.push(f);
-
-  let current = parseInt($('feedNumber').value, 10);
-  if (!Number.isInteger(current)) current = Math.max(0, ...items.map((i) => i.num)) + 1;
-  const others = items.filter((i) => i.num !== current);
-  others.push({ num: current, src: makeThumbnail(600), isCurrent: true });
-  renderFeedGrid($('feedGrid'), others);
-  openModal('feedModal');
-}
-
-async function saveFeedCover() {
-  if (renderQueued) renderNow();
-  const first = previewCanvases()[0];
-  if (!first) return alert('Najpierw uzupełnij treść, aby wygenerować okładkę.');
-  downloadBlob(await canvasToBlob(first), `${$('feedNumber').value || '1'}.jpg`);
 }
 
 // ─────────────────────────────── Pobieranie ───────────────────────────────
@@ -688,10 +631,6 @@ function bindEvents() {
   $('refreshBtn').addEventListener('click', renderNow);
   $('clearBtn').addEventListener('click', clearContent);
 
-  $('saveFeedCoverBtn').addEventListener('click', saveFeedCover);
-  $('feedFolderBtn').addEventListener('click', () => $('feedFolderInput').click());
-  $('feedFolderInput').addEventListener('change', (e) => loadFeedFolder(e.target.files));
-  $('previewFeedBtn').addEventListener('click', previewFeed);
 
   $('previewVideoBtn').addEventListener('click', () => {
     if (renderQueued) renderNow();
@@ -769,7 +708,7 @@ async function init() {
 
   await logos;
   renderNow();
-  // Post bez miniatury (np. świeżo utworzony) – zapisz od razu, żeby pojawił się na liście i w feedzie
+  // Post bez miniatury (np. świeżo utworzony) – zapisz od razu, żeby miniatura pojawiła się na liście postów
   if (!post.thumbUrl && previewCanvases().length) markDirty();
 }
 

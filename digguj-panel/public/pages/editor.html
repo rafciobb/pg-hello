@@ -53,13 +53,9 @@
             </select>
           </div>
           <div>
-            <label for="feedNumber">Nr posta w feedzie</label>
-            <input type="number" id="feedNumber" min="0">
+            <label for="scheduledAt">Data publikacji</label>
+            <input type="datetime-local" id="scheduledAt">
           </div>
-        </div>
-        <div>
-          <label for="scheduledAt">Planowana data publikacji</label>
-          <input type="datetime-local" id="scheduledAt">
         </div>
       </div>
     </div>
@@ -104,19 +100,6 @@
           </select>
         </div>
         <button class="btn btn-play btn-block" id="previewVideoBtn" type="button">▶ PODGLĄD WIDEO (PLAY)</button>
-      </div>
-    </div>
-
-    <div class="card" id="feedDataCard">
-      <div class="slabel">📱 Wizualizacja Feeda</div>
-      <div class="stack">
-        <button class="btn btn-secondary btn-block" id="saveFeedCoverBtn" type="button">💾 POBIERZ OKŁADKĘ (.JPG)</button>
-        <button class="btn btn-secondary btn-block" id="feedFolderBtn" type="button" title="Opcjonalnie: dołącz okładki starszych postów, których nie ma w bazie">📂 DOŁĄCZ STARE OKŁADKI Z FOLDERU</button>
-        <input type="file" id="feedFolderInput" webkitdirectory directory multiple hidden>
-        <button class="btn btn-insta btn-block" id="previewFeedBtn" type="button">
-          <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
-          WIZUALIZACJA FEEDA
-        </button>
       </div>
     </div>
 
@@ -250,17 +233,6 @@
 <div class="modal" id="videoPreviewModal">
   <button class="modal-close" data-close-modal type="button" aria-label="Zamknij">&times;</button>
   <canvas id="previewCanvas"></canvas>
-</div>
-
-<div class="modal" id="feedModal">
-  <div class="modal-panel">
-    <div class="modal-panel-header">
-      <h2>WIZUALIZACJA FEEDA</h2>
-      <button class="modal-close" data-close-modal type="button" aria-label="Zamknij">&times;</button>
-    </div>
-    <p class="feed-hint">Okładki postów z bazy (według numeru w feedzie) + ewentualnie dołączone stare okładki z folderu.</p>
-    <div class="feed-grid" id="feedGrid"></div>
-  </div>
 </div>
 
 <script type="module" src="/js/editor.js"></script>
