@@ -99,7 +99,9 @@ async function fontsReady() {
   const specs = ['500 40px "DM Sans"', '800 40px "DM Sans"', '500 40px "Montserrat"', '600 40px "Montserrat"',
     '800 40px "Montserrat"', '900 40px "Montserrat"'];
   const timeout = new Promise((r) => setTimeout(r, 4000));
-  try { await Promise.race([Promise.all(specs.map((s) => document.fonts.load(s))), timeout]); } catch { /* trudno */ }
+  // Tekst próbny z polskimi znakami wymusza pobranie podzbioru latin-ext (inaczej "Ę", "Ś" itd. w 1. klatce rysują się fontem zastępczym)
+  const sample = 'AaĄąĆćĘęŁłŃńÓóŚśŹźŻż';
+  try { await Promise.race([Promise.all(specs.map((s) => document.fonts.load(s, sample))), timeout]); } catch { /* trudno */ }
 }
 
 // ─────────────────────────────── Podgląd ───────────────────────────────
