@@ -61,7 +61,15 @@ digguj-panel/
 
 Główne logo „DIGGUJ FAKTY” jest już w `public/assets/digguj-fakty.png`. Opcjonalnie możesz dodać drugie, małe logo jako `public/assets/logo.png` – pojawi się obok głównego (55×55 px).
 
-## Uruchomienie lokalnie (na własnym komputerze)
+## Szybki test na własnym komputerze
+
+Najprościej przez Docker Desktop – jedna komenda, konto testowe zakłada się samo. Instrukcja krok po kroku i lista rzeczy do sprawdzenia: **[TESTOWANIE.md](TESTOWANIE.md)**.
+
+```bash
+docker compose -f docker-compose.local.yml up --build   # → http://localhost:3000  (admin / testowe-haslo)
+```
+
+## Uruchomienie lokalnie (na własnym komputerze) – do programowania
 
 Potrzebujesz **Node.js 22+** i **PostgreSQL** (albo Dockera – patrz niżej).
 

@@ -1,0 +1,47 @@
+# ─────────────────────────────────────────────────────────────────────────
+#  TEST LOKALNY na własnym komputerze (Docker Desktop).
+#    docker compose -f docker-compose.local.yml up --build
+#  Panel: http://localhost:3000   login: admin   hasło: testowe-haslo
+#
+#  Hasła poniżej są jawne – ten plik NIE nadaje się na serwer!
+#  Na serwerze używaj docker-compose.yml + .env (patrz README).
+# ─────────────────────────────────────────────────────────────────────────
+name: digguj-local
+
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: digguj
+      POSTGRES_PASSWORD: digguj-local
+      POSTGRES_DB: digguj
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U digguj -d digguj"]
+      interval: 3s
+      timeout: 5s
+      retries: 20
+
+  app:
+    build: .
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgres://digguj:digguj-local@db:5432/digguj
+      SESSION_SECRET: tylko-do-testow-lokalnych-0123456789abcdef
+      COOKIE_SECURE: "false"
+      TRUST_PROXY: "false"
+      BOOTSTRAP_ADMIN_USER: admin
+      BOOTSTRAP_ADMIN_PASSWORD: testowe-haslo
+    volumes:
+      - uploads:/app/uploads
+      - ./public/assets:/app/public/assets:ro
+
+volumes:
+  db-data:
+  uploads:
