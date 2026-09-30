@@ -150,6 +150,15 @@ describe('API panelu', { skip: !TEST_DB && 'ustaw TEST_DATABASE_URL, aby uruchom
     assert.equal((await req('GET', dup.data.post.thumbUrl)).status, 200);
   });
 
+  test('ustawienia: domyślne teksty CTA', async () => {
+    assert.equal((await req('GET', '/api/settings/ctaDefaults')).data.value, null);
+    assert.equal((await req('GET', '/api/settings/cokolwiek')).status, 404);
+    assert.equal((await req('PUT', '/api/settings/ctaDefaults', { body: { value: { ctaTitle: 123 } } })).status, 400);
+    const saved = await req('PUT', '/api/settings/ctaDefaults', { body: { value: { ctaTitle: 'UDOSTĘPNIJ!', ctaHandle: '@digguj', obce: 'x' } } });
+    assert.equal(saved.status, 200);
+    assert.deepEqual((await req('GET', '/api/settings/ctaDefaults')).data.value, { ctaTitle: 'UDOSTĘPNIJ!', ctaHandle: '@digguj' });
+  });
+
   test('wylogowanie', async () => {
     assert.equal((await req('POST', '/api/auth/logout')).status, 200);
     assert.equal((await req('GET', '/api/posts')).status, 401);

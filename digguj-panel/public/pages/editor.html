@@ -205,6 +205,23 @@
       <button class="btn btn-secondary btn-block dashed" id="addSlideBtn" type="button">+ DODAJ NOWY SLAJD</button>
     </div>
 
+    <div class="card" id="ctaCard">
+      <div class="slabel">📣 Slajd końcowy (CTA)
+        <label class="toggle"><input type="checkbox" id="ctaEnabled" checked><span>DODAWAJ</span></label>
+      </div>
+      <div class="stack" id="ctaFields">
+        <div><label for="ctaLabel">Nadtytuł (w kolorze akcentu)</label><input type="text" id="ctaLabel" maxlength="80"></div>
+        <div><label for="ctaTitle">Tytuł</label><input type="text" id="ctaTitle" maxlength="80"></div>
+        <div><label for="ctaText">Tekst</label><textarea id="ctaText" maxlength="300"></textarea></div>
+        <div><label for="ctaHandle">Profil do obserwowania (opcjonalnie, np. @digguj.fakty)</label><input type="text" id="ctaHandle" maxlength="40" placeholder="@nazwa_profilu"></div>
+        <div class="row2">
+          <button class="btn btn-secondary" id="ctaSaveDefaultsBtn" type="button" title="Nowe posty dostaną te teksty">💾 USTAW JAKO DOMYŚLNE</button>
+          <button class="btn btn-secondary" id="ctaResetBtn" type="button" title="Wczytaj zapisane domyślne teksty">↺ PRZYWRÓĆ DOMYŚLNE</button>
+        </div>
+        <p class="note">Tło slajdu to ta sama rozmyta okładka co na 1. slajdzie (suwaki „Blur” i „Przyciemnienie tła”). Przyciski UDOSTĘPNIJ / REPOSTUJ są w kolorze akcentu.</p>
+      </div>
+    </div>
+
     <div class="bottom-actions">
       <button class="btn btn-primary" id="refreshBtn" type="button">▶ ODŚWIEŻ</button>
       <button class="btn btn-danger" id="clearBtn" type="button">🗑️ WYCZYŚĆ TREŚĆ</button>

@@ -12,6 +12,7 @@ Zabezpieczony hasłem panel WWW do tworzenia postów na Instagram: **karuzel 4:5
   - zdjęcia wysyłane na serwer (JPG/PNG/WEBP/GIF) – dostępne z każdego komputera,
   - kadrowanie zdjęć przeciąganiem (także na tablecie – obsługa dotyku),
   - zmiana kolejności slajdów (↑ ↓), usuwanie zdjęć ze slajdów,
+  - **slajd końcowy CTA** („Udostępnij i zrepostuj”) doklejany automatycznie do karuzel, rolek i wideo: tło to ta sama rozmyta okładka co na 1. slajdzie, teksty edytowalne, opcjonalnie „Obserwuj @profil”; domyślne teksty ustawia się raz dla wszystkich nowych postów,
   - eksport ZIP (slajdy + `opis_posta.txt`), JPG (kalendarium), wideo MP4 + okładka rolki + opis,
   - podgląd wideo z przejściami, wsad treści z JSON, licznik znaków opisu (limit IG 2200), kopiowanie opisu do schowka,
   - wykrywanie konfliktów: gdy ten sam post jest otwarty w dwóch kartach/na dwóch urządzeniach, panel nie nadpisze po cichu zmian.
@@ -196,6 +197,7 @@ TEST_DATABASE_URL=postgres://digguj:haslo@localhost:5432/digguj_test npm test
 | GET · PUT · DELETE | `/api/posts/:id` | pobranie / zapis (wymaga `version`) / usunięcie |
 | POST | `/api/posts` · `/api/posts/:id/duplicate` | nowy post / kopia |
 | POST | `/api/media` | upload zdjęcia (`multipart/form-data`, pole `file`) |
+| GET · PUT | `/api/settings/ctaDefaults` | domyślne teksty slajdu CTA dla nowych postów |
 
 Zapytania zmieniające dane muszą mieć nagłówek `X-Requested-With: digguj`.
 

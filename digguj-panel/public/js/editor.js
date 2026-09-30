@@ -18,6 +18,8 @@ let coverMediaId = null;
 /** @type {{text: string, mediaId: string|null, panX: number, panY: number, imgObj: HTMLImageElement|null}[]} */
 let slides = [];
 let version = 0;
+/** Domyślne teksty CTA zapisane na serwerze (nadpisują wbudowane R.DEFAULTS). */
+let ctaDefaults = {};
 let lastSavedAt = null;
 let modalIndex = -1;
 const videoPreview = new VideoPreview($('previewCanvas'));
@@ -46,15 +48,22 @@ function loadImage(src) {
 
 function readCfg() {
   const cfg = { postMode: getRadio('postMode'), postFormat: getRadio('postFormat') };
-  for (const id of FIELDS) cfg[id] = $(id).value;
+  for (const id of FIELDS) {
+    const el = $(id);
+    cfg[id] = el.type === 'checkbox' ? (el.checked ? '1' : '0') : el.value;
+  }
   return cfg;
 }
 
 function writeFields(values) {
   for (const id of FIELDS) {
-    if (values[id] !== undefined && values[id] !== null) $(id).value = values[id];
+    if (values[id] === undefined || values[id] === null) continue;
+    const el = $(id);
+    if (el.type === 'checkbox') el.checked = String(values[id]) === '1';
+    else el.value = values[id];
   }
   updateRangeLabels();
+  applyCtaUI();
 }
 
 function updateRangeLabels() {
@@ -122,16 +131,17 @@ function renderNow() {
   const cfg = readCfg();
   updateRecommendedHint();
   const container = $('canvasContainer');
-  const count = R.countCanvases(cfg.postMode, slides);
-  const key = `${cfg.postMode}:${count}`;
+  const count = R.countCanvases(cfg, slides);
+  const withCta = R.hasCtaSlide(cfg, slides);
+  const key = `${cfg.postMode}:${count}:${withCta}`;
   if (container.dataset.key !== key) {
-    buildCanvases(container, cfg.postMode, count);
+    buildCanvases(container, cfg.postMode, count, withCta);
     container.dataset.key = key;
   }
   if (count > 0) R.renderPreview(previewCanvases(), cfg, assets, slides, 2);
 }
 
-function buildCanvases(container, mode, count) {
+function buildCanvases(container, mode, count, withCta) {
   container.innerHTML = '';
   if (count === 0) {
     container.innerHTML = '<p class="empty-preview">Uzupełnij chociaż jeden slajd (zdjęcie lub tekst), aby wygenerować podgląd.</p>';
@@ -142,7 +152,7 @@ function buildCanvases(container, mode, count) {
     wrapper.className = 'canvas-wrapper';
     const label = document.createElement('div');
     label.className = 'canvas-label';
-    label.textContent = mode === 'calendar' ? '1 / 1 (Kalendarium)' : `${i + 1} / ${count}`;
+    label.textContent = mode === 'calendar' ? '1 / 1 (Kalendarium)' : `${i + 1} / ${count}${withCta && i === count - 1 ? ' · CTA' : ''}`;
     const canvas = document.createElement('canvas');
     attachCanvasInteractions(canvas, i);
     wrapper.append(canvas, label);
@@ -202,12 +212,17 @@ function openSlideModal(index) {
 }
 
 // ─────────────────────────────── Tryb i format ───────────────────────────────
+function applyCtaUI() {
+  $('ctaFields').hidden = !$('ctaEnabled').checked;
+}
+
 function applyModeUI() {
   const mode = getRadio('postMode');
   $('albumDataCard').hidden = mode !== 'album';
   $('calendarDataCard').hidden = mode !== 'calendar';
   $('slidesCard').hidden = mode === 'calendar';
   $('coverDurationContainer').hidden = mode !== 'album';
+  $('ctaCard').hidden = mode === 'calendar';
   $('calAccent').value = $('colSlideArtist').value;
   $('jsonText').placeholder = mode === 'calendar'
     ? '{\n  "mode": "calendar",\n  "calDate": "28 WRZEŚNIA",\n  "calEvents": [\n    "1991: Nirvana wydaje...",\n    "2003: Kolejne wydarzenie..."\n  ]\n}'
@@ -438,14 +453,19 @@ async function overwriteAfterConflict() {
 
 // ─────────────────────────────── Wczytanie posta ───────────────────────────────
 async function loadPost() {
-  const { post } = await api(`/api/posts/${postId}`);
+  const [{ post }, settings] = await Promise.all([
+    api(`/api/posts/${postId}`),
+    api('/api/settings/ctaDefaults').catch(() => ({ value: null })),
+  ]);
+  ctaDefaults = settings.value || {};
   const data = post.data || {};
   version = post.version;
   lastSavedAt = post.updatedAt;
 
   setRadio('postMode', post.mode);
   setRadio('postFormat', post.format);
-  writeFields({ ...R.DEFAULTS, ...data });
+  // Kolejność: wbudowane domyślne → domyślne CTA z ustawień → to, co zapisano w poście
+  writeFields({ ...R.DEFAULTS, ...ctaDefaults, ...data });
   $('postTitle').value = data.customTitle || '';
   $('postStatus').value = post.status;
   $('scheduledAt').value = toLocalInput(post.scheduledAt);
@@ -505,7 +525,7 @@ function applyJson() {
 
 function clearContent() {
   if (!confirm('🚨 Wyczyścić całą treść tego posta (teksty, zdjęcia, opis i ustawienia wyglądu)?\nStatus i data publikacji zostaną.')) return;
-  writeFields(R.DEFAULTS);
+  writeFields({ ...R.DEFAULTS, ...ctaDefaults });
   $('calAccent').value = $('colSlideArtist').value;
   $('postTitle').value = '';
   $('instaCaption').value = '';
@@ -515,6 +535,25 @@ function clearContent() {
   updateCoverThumb();
   updateCaptionCounter();
   slidesChanged();
+}
+
+// ─────────────────────────────── CTA – domyślne teksty ───────────────────────────────
+async function saveCtaDefaults() {
+  const cfg = readCfg();
+  const value = Object.fromEntries(R.CTA_FIELDS.map((k) => [k, cfg[k]]));
+  try {
+    ctaDefaults = (await api('/api/settings/ctaDefaults', { method: 'PUT', body: { value } })).value;
+    toast('Zapisano – nowe posty dostaną te teksty CTA.', 'ok');
+  } catch (err) {
+    toast(err.message, 'error');
+  }
+}
+
+function resetCtaToDefaults() {
+  const values = Object.fromEntries(R.CTA_FIELDS.map((k) => [k, ctaDefaults[k] ?? R.DEFAULTS[k]]));
+  writeFields(values);
+  scheduleRender();
+  markDirty();
 }
 
 // ─────────────────────────────── Pobieranie ───────────────────────────────
@@ -574,6 +613,7 @@ function bindEvents() {
     if (t.id === 'calAccent') $('colSlideArtist').value = t.value;
     if (t.id === 'calAccent' || t.id === 'colSlideArtist') $('calAccent').value = $('colSlideArtist').value;
     if (t.type === 'range') updateRangeLabels();
+    if (t.id === 'ctaEnabled') applyCtaUI();
     if (t.id === 'instaCaption') updateCaptionCounter();
     if (FIELDS.includes(t.id) || t.id === 'calAccent') scheduleRender();
     updateTitlePlaceholder();
@@ -631,6 +671,8 @@ function bindEvents() {
     }
   });
   $('refreshBtn').addEventListener('click', renderNow);
+  $('ctaSaveDefaultsBtn').addEventListener('click', saveCtaDefaults);
+  $('ctaResetBtn').addEventListener('click', resetCtaToDefaults);
   $('clearBtn').addEventListener('click', clearContent);
 
 

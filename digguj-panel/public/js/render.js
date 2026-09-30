@@ -29,7 +29,16 @@ export const DEFAULTS = {
   albumLabel: '',
   calDate: '',
   calEvents: '',
+  // Slajd końcowy z wezwaniem do akcji (CTA)
+  ctaEnabled: '1',
+  ctaLabel: 'JEŚLI PODOBA CI SIĘ TO, CO ROBIMY',
+  ctaTitle: 'UDOSTĘPNIJ I ZREPOSTUJ',
+  ctaText: 'Każde udostępnienie pomaga nam dotrzeć do kolejnych fanów muzyki. Dzięki, że jesteś z nami!',
+  ctaHandle: '',
 };
+
+/** Pola CTA – można je zapisać jako domyślne dla nowych postów. */
+export const CTA_FIELDS = ['ctaEnabled', 'ctaLabel', 'ctaTitle', 'ctaText', 'ctaHandle'];
 
 const int = (v, fallback) => {
   const n = parseInt(v, 10);
@@ -45,11 +54,20 @@ export function getActiveSlides(slides) {
     .filter((s) => s.text !== '' || s.imgObj);
 }
 
-/** Liczba canvasów w podglądzie dla danego trybu. */
-export function countCanvases(mode, slides) {
-  if (mode === 'calendar') return 1;
+function countContentSlides(mode, slides) {
   const active = getActiveSlides(slides).length;
   return mode === 'album' ? active + 1 : active;
+}
+
+/** Czy na końcu posta dokleić slajd CTA (nie dotyczy kalendarium). */
+export function hasCtaSlide(cfg, slides) {
+  return cfg.postMode !== 'calendar' && cfg.ctaEnabled === '1' && countContentSlides(cfg.postMode, slides) > 0;
+}
+
+/** Liczba canvasów w podglądzie (okładka + ciekawostki + ewentualnie CTA). */
+export function countCanvases(cfg, slides) {
+  if (cfg.postMode === 'calendar') return 1;
+  return countContentSlides(cfg.postMode, slides) + (hasCtaSlide(cfg, slides) ? 1 : 0);
 }
 
 /** Indeks slajdu (w tablicy slides) dla danego canvasa podglądu albo -1 (okładka / kalendarium). */
@@ -502,6 +520,157 @@ export function drawSlide(canvas, cfg, assets, slide, format, isReelCoverForGrid
   if (!hideLogo) drawLogosTopRight(ctx, assets, format, offsetY, 1);
 }
 
+// ─────────────────────────────── SLAJD KOŃCOWY (CTA) ───────────────────────────────
+const ICONS = {
+  send: ['M22 2L11 13', 'M22 2l-7 20-4-9-9-4 20-7z'],
+  repeat: ['M17 1l4 4-4 4', 'M3 11V9a4 4 0 0 1 4-4h14', 'M7 23l-4-4 4-4', 'M21 13v2a4 4 0 0 1-4 4H3'],
+};
+
+/** Ikona w stylu Feather (siatka 24×24) wyśrodkowana w punkcie (cx, cy). */
+function drawIcon(ctx, name, cx, cy, size, color, lineWidth = 2) {
+  ctx.save();
+  ctx.translate(cx - size / 2, cy - size / 2);
+  ctx.scale(size / 24, size / 24);
+  ctx.strokeStyle = color;
+  ctx.lineWidth = lineWidth;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  ICONS[name].forEach((d) => ctx.stroke(new Path2D(d)));
+  ctx.restore();
+}
+
+function drawPill(ctx, x, y, w, h, { fill, color, text, iconName, outline = false }) {
+  ctx.save();
+  ctx.beginPath();
+  if (ctx.roundRect) ctx.roundRect(x, y, w, h, h / 2); else ctx.rect(x, y, w, h);
+  if (outline) { ctx.strokeStyle = color; ctx.lineWidth = 3; ctx.stroke(); } else { ctx.fillStyle = fill; ctx.fill(); }
+  ctx.font = '900 34px "Montserrat"';
+  const tw = ctx.measureText(text).width;
+  const iconSize = 38, gap = 20;
+  const sx = x + (w - tw - gap - iconSize) / 2;
+  ctx.fillStyle = color;
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(text, sx, y + h / 2 + 2);
+  drawIcon(ctx, iconName, sx + tw + gap + iconSize / 2, y + h / 2, iconSize, color, 2.4);
+  ctx.restore();
+}
+
+/** Układ tekstów CTA dopasowany do dostępnej wysokości (zmniejsza fonty, gdy tekst jest długi). */
+function layoutCta(ctx, cfg, availableH, tall) {
+  const label = (cfg.ctaLabel || '').trim().toUpperCase();
+  const title = (cfg.ctaTitle || '').trim().toUpperCase();
+  const body = (cfg.ctaText || '').trim();
+  const handle = (cfg.ctaHandle || '').trim();
+  const maxW = W - 180;
+  const buttonsGap = tall ? 80 : 44;
+  let titleSize = 96, bodySize = 34, layout;
+  for (;;) {
+    ctx.font = `900 ${titleSize}px "Montserrat"`;
+    const titleLines = title ? getLines(ctx, title, maxW) : [];
+    ctx.font = `500 ${bodySize}px "DM Sans"`;
+    const bodyLines = body ? getLines(ctx, body, maxW - 80) : [];
+    const titleLH = Math.round(titleSize * 1.04), bodyLH = Math.round(bodySize * 1.41);
+    const height = (label ? 58 : 0)
+      + titleLines.length * titleLH + (title ? 22 : 0)
+      + bodyLines.length * bodyLH + buttonsGap
+      + 96 + (handle ? 30 + 30 : 0);
+    layout = { label, handle, titleLines, bodyLines, titleSize, bodySize, titleLH, bodyLH, buttonsGap, height };
+    if ((height <= availableH && titleLines.length <= 3) || titleSize <= 56) return layout;
+    titleSize -= 4;
+    if (bodySize > 26) bodySize -= 1;
+  }
+}
+
+/**
+ * Slajd końcowy: tło identyczne jak na 1. slajdzie (rozmyta okładka z tymi samymi ustawieniami blur/przyciemnienia),
+ * na nim ostra okładka wtapiająca się w tło, a pod nią zachęta do udostępnienia i repostu.
+ */
+export function drawCtaSlide(canvas, cfg, assets, format, renderScale = 2, hideLogo = false) {
+  const tall = isTallFormat(format);
+  const H = tall ? 1920 : 1350;
+  const ctx = prepareCanvas(canvas, H, renderScale);
+  ctx.clearRect(0, 0, W, H);
+  const cover = assets.coverImg;
+  drawBlurredBackground(ctx, cover, H, cfg);
+
+  const accent = cfg.colSlideArtist || '#f0e040';
+  const bottomLimit = H - (tall ? 300 : 60);
+  let y;
+
+  if (cover) {
+    const size = tall ? 980 : 780;
+    const x = (W - size) / 2;
+    const y0 = tall ? 260 : 190;
+    // Okładka na osobnej warstwie z maską: dół i boki płynnie przechodzą w rozmyte tło
+    const layer = document.createElement('canvas');
+    layer.width = layer.height = Math.round(size * renderScale);
+    const lc = layer.getContext('2d');
+    lc.imageSmoothingQuality = 'high';
+    lc.scale(renderScale, renderScale);
+    drawImageProp(lc, cover, 0, 0, size, size);
+    lc.globalCompositeOperation = 'destination-in';
+    const fadeY = lc.createLinearGradient(0, size * 0.28, 0, size * 0.66);
+    fadeY.addColorStop(0, 'rgba(0,0,0,1)');
+    fadeY.addColorStop(1, 'rgba(0,0,0,0)');
+    lc.fillStyle = fadeY;
+    lc.fillRect(0, 0, size, size);
+    const fadeX = lc.createLinearGradient(0, 0, size, 0);
+    fadeX.addColorStop(0, 'rgba(0,0,0,0)');
+    fadeX.addColorStop(0.06, 'rgba(0,0,0,1)');
+    fadeX.addColorStop(0.94, 'rgba(0,0,0,1)');
+    fadeX.addColorStop(1, 'rgba(0,0,0,0)');
+    lc.fillStyle = fadeX;
+    lc.fillRect(0, 0, size, size);
+    ctx.drawImage(layer, x, y0, size, size);
+    y = y0 + size * (tall ? 0.7 : 0.68);
+  }
+
+  const available = bottomLimit - (y ?? (tall ? 300 : 160));
+  const L = layoutCta(ctx, cfg, available, tall);
+  if (y === undefined) y = Math.max(tall ? 300 : 160, (H - L.height) / 2); // bez okładki: tekst na środku
+
+  ctx.save();
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'top';
+  ctx.shadowColor = 'rgba(0, 0, 0, 0.5)'; ctx.shadowBlur = 10; ctx.shadowOffsetY = 4;
+  if (L.label) {
+    ctx.fillStyle = accent;
+    let size = 34;
+    ctx.font = `800 ${size}px "Montserrat"`;
+    while (ctx.measureText(L.label).width > W - 120 && size > 20) { size -= 2; ctx.font = `800 ${size}px "Montserrat"`; }
+    ctx.fillText(L.label, W / 2, y);
+    y += 58;
+  }
+  ctx.fillStyle = '#ffffff';
+  ctx.font = `900 ${L.titleSize}px "Montserrat"`;
+  L.titleLines.forEach((line) => { ctx.fillText(line, W / 2, y); y += L.titleLH; });
+  if (L.titleLines.length) y += 22;
+  ctx.fillStyle = 'rgba(255,255,255,0.85)';
+  ctx.font = `500 ${L.bodySize}px "DM Sans"`;
+  L.bodyLines.forEach((line) => { ctx.fillText(line, W / 2, y); y += L.bodyLH; });
+  ctx.restore();
+
+  y += L.buttonsGap;
+  const bw = 400, bh = 96, gap = 24;
+  drawPill(ctx, W / 2 - bw - gap / 2, y, bw, bh, { fill: accent, color: '#0a0a0a', text: 'UDOSTĘPNIJ', iconName: 'send' });
+  drawPill(ctx, W / 2 + gap / 2, y, bw, bh, { color: '#ffffff', text: 'REPOSTUJ', iconName: 'repeat', outline: true });
+  y += bh;
+
+  if (L.handle) {
+    ctx.save();
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'top';
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.5)'; ctx.shadowBlur = 10; ctx.shadowOffsetY = 4;
+    ctx.font = '800 30px "DM Sans"';
+    ctx.fillStyle = 'rgba(255,255,255,0.85)';
+    ctx.fillText(`OBSERWUJ ${L.handle}`, W / 2, y + 30);
+    ctx.restore();
+  }
+
+  if (!hideLogo) drawLogosTopRight(ctx, assets, format, 0, 1);
+}
+
 /** Rysuje wszystkie canvasy podglądu (canvases – tablica elementów <canvas>). */
 export function renderPreview(canvases, cfg, assets, slides, scale = 2) {
   const mode = cfg.postMode;
@@ -514,6 +683,7 @@ export function renderPreview(canvases, cfg, assets, slides, scale = 2) {
   let i = 0;
   if (mode === 'album') drawCoverSlide(canvases[i++], cfg, assets, format, false, scale);
   active.forEach((slide) => drawSlide(canvases[i++], cfg, assets, slide, format, false, scale));
+  if (hasCtaSlide(cfg, slides) && canvases[i]) drawCtaSlide(canvases[i], cfg, assets, format, scale);
 }
 
 /** Okładka rolki do siatki profilu (4:5 wycięte z 9:16). */
@@ -547,6 +717,11 @@ export function buildVideoSlides(cfg, assets, slides, scale = 1) {
   for (const slide of getActiveSlides(slides)) {
     const c = document.createElement('canvas');
     drawSlide(c, cfg, assets, slide, 'video', false, scale, true);
+    out.push(c);
+  }
+  if (hasCtaSlide(cfg, slides)) {
+    const c = document.createElement('canvas');
+    drawCtaSlide(c, cfg, assets, 'video', scale, true);
     out.push(c);
   }
   return { slides: out, bg };

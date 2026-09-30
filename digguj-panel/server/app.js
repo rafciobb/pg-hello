@@ -8,6 +8,7 @@ import { pool } from './db.js';
 import { authRouter, csrfGuard, loadUser, requireAuth, requirePage } from './auth.js';
 import { postsRouter } from './routes/posts.js';
 import { mediaApiRouter, mediaServeRouter } from './routes/media.js';
+import { settingsRouter } from './routes/settings.js';
 
 const PUBLIC = path.join(config.root, 'public');
 const PAGES = path.join(PUBLIC, 'pages');
@@ -91,6 +92,7 @@ export function createApp({ sessionStore } = {}) {
   app.use('/api/auth', authRouter);
   app.use('/api/posts', requireAuth, postsRouter);
   app.use('/api/media', requireAuth, mediaApiRouter);
+  app.use('/api/settings', requireAuth, settingsRouter);
   app.use('/media', requireAuth, mediaServeRouter);
 
   app.use('/api', (_req, res) => res.status(404).json({ error: 'Nie znaleziono.' }));
