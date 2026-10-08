@@ -700,8 +700,42 @@ function drawLogoMedallion(canvas, ctx, H, scale, cx, cy, r, logo, accent) {
 
   ctx.beginPath(); ctx.arc(cx, cy, r - 1.5, 0, Math.PI * 2);
   ctx.strokeStyle = accent; ctx.lineWidth = 3; ctx.stroke();
-  const lw = 150, lh = logo.height * (lw / logo.width);
-  ctx.drawImage(logo, cx - lw / 2, cy - lh / 2, lw, lh);
+  // Logo dopasowane do okręgu po widocznej części (bez przezroczystych marginesów pliku)
+  const box = visibleBounds(logo);
+  const fit = (r * 2 * 0.72) / Math.max(box.w, box.h);
+  const dw = box.w * fit, dh = box.h * fit;
+  ctx.drawImage(logo, box.x, box.y, box.w, box.h, cx - dw / 2, cy - dh / 2, dw, dh);
+}
+
+const boundsCache = new WeakMap();
+
+/** Prostokąt nieprzezroczystych pikseli obrazka (np. logo PNG z marginesami). */
+function visibleBounds(img) {
+  if (boundsCache.has(img)) return boundsCache.get(img);
+  let box = { x: 0, y: 0, w: img.width, h: img.height };
+  try {
+    const scale = Math.min(1, 400 / Math.max(img.width, img.height));
+    const c = document.createElement('canvas');
+    c.width = Math.max(1, Math.round(img.width * scale));
+    c.height = Math.max(1, Math.round(img.height * scale));
+    const cx = c.getContext('2d');
+    cx.drawImage(img, 0, 0, c.width, c.height);
+    const d = cx.getImageData(0, 0, c.width, c.height).data;
+    let minX = c.width, minY = c.height, maxX = -1, maxY = -1;
+    for (let y = 0; y < c.height; y++) {
+      for (let x = 0; x < c.width; x++) {
+        if (d[(y * c.width + x) * 4 + 3] > 8) {
+          if (x < minX) minX = x; if (x > maxX) maxX = x;
+          if (y < minY) minY = y; if (y > maxY) maxY = y;
+        }
+      }
+    }
+    if (maxX >= minX) {
+      box = { x: minX / scale, y: minY / scale, w: (maxX - minX + 1) / scale, h: (maxY - minY + 1) / scale };
+    }
+  } catch { /* np. obrazek z innej domeny – rysujemy cały */ }
+  boundsCache.set(img, box);
+  return box;
 }
 
 /**
