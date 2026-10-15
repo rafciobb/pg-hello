@@ -143,6 +143,107 @@ export function getLines(ctx, text, maxW) {
   return lines;
 }
 
+// ─────────────────────────────── CZYTELNE ŁAMANIE TEKSTU ───────────────────────────────
+const DASH_RE = /^[–—-]+$/;               // samodzielny myślnik / półpauza
+const SHORT_WORD_RE = /^[aiouwzAIOUWZ]$/; // jednoliterowe spójniki i przyimki
+const NUMBER_RE = /^\d+(?:[.,:/]\d+)*%?$/; // liczby, daty, godziny ("60", "1991", "3,5") – bez kończącej interpunkcji
+// skróty i inicjały, które nie powinny zostać na końcu linii ("np.", "tzw.", "dr", "J.", "Sgt.")
+const ABBREV_RE = /^[„"(]?(?:np|tzw|m\.in|ok|ul|św|dr|nr|im|tj|godz|ang|ks|prof|mgr|inż|pt|wyd|t|s|r|[A-ZĄĆĘŁŃÓŚŹŻ][a-ząćęłńóśźż]{0,2})\.?$/;
+const isAbbrev = (w) => w.length <= 6 && ABBREV_RE.test(w) && (/\.$/.test(w) || /^(?:dr|nr|ks|prof|mgr|inż)$/i.test(w));
+const BREAK_AFTER_RE = /[.,;:!?…–—)»”"]$/; // naturalne miejsce na koniec linii
+
+/**
+ * Dzieli akapit na nierozdzielne "kawałki" według polskich zasad składu:
+ * myślnik dokleja się do poprzedniego słowa (nie zaczyna linii), a jednoliterowe
+ * słowa i liczby – do następnego (nie zostają same na końcu linii).
+ */
+function textUnits(paragraph) {
+  const words = paragraph.split(/\s+/).filter(Boolean);
+  const units = [];
+  let carry = '';
+  for (const word of words) {
+    if (DASH_RE.test(word) && !carry && units.length) {
+      units[units.length - 1] += ' ' + word;
+      continue;
+    }
+    const piece = carry ? carry + ' ' + word : word;
+    if (SHORT_WORD_RE.test(word) || NUMBER_RE.test(word) || isAbbrev(word)) {
+      carry = piece;
+      continue;
+    }
+    units.push(piece);
+    carry = '';
+  }
+  if (carry) units.push(carry);
+  return units;
+}
+
+/** Łamie akapit na tyle samo linii co zwykle, ale z wyrównaną długością linii. */
+function balanceParagraph(ctx, paragraph, maxW) {
+  const units = textUnits(paragraph);
+  if (units.length < 2) return units;
+  const space = ctx.measureText(' ').width;
+  const widths = units.map((u) => ctx.measureText(u).width);
+  const lineWidth = (i, j) => {
+    let w = 0;
+    for (let k = i; k <= j; k++) w += widths[k];
+    return w + space * (j - i);
+  };
+
+  // Najmniejsza możliwa liczba linii (zachłannie, po kawałkach)
+  let count = 1;
+  let current = widths[0];
+  for (let k = 1; k < units.length; k++) {
+    if (current + space + widths[k] > maxW) { count++; current = widths[k]; } else current += space + widths[k];
+  }
+  if (count === 1) return [units.join(' ')];
+
+  // Programowanie dynamiczne: dokładnie `count` linii, minimalna suma kwadratów wolnego miejsca
+  // (= linie o podobnej długości) z lekką premią za koniec linii na znaku interpunkcyjnym.
+  const n = units.length;
+  const bonus = (maxW * 0.12) ** 2;
+  const cost = Array.from({ length: count + 1 }, () => new Array(n + 1).fill(Infinity));
+  const prev = Array.from({ length: count + 1 }, () => new Array(n + 1).fill(-1));
+  cost[0][0] = 0;
+  for (let l = 1; l <= count; l++) {
+    for (let j = 1; j <= n; j++) {
+      for (let i = j - 1; i >= 0; i--) {
+        const w = lineWidth(i, j - 1);
+        if (w > maxW && j - 1 > i) break;
+        if (cost[l - 1][i] === Infinity) continue;
+        let c = cost[l - 1][i] + (maxW - w) ** 2;
+        if (j < n && BREAK_AFTER_RE.test(units[j - 1])) c -= bonus;
+        if (c < cost[l][j]) { cost[l][j] = c; prev[l][j] = i; }
+      }
+    }
+  }
+  if (cost[count][n] === Infinity) return null;
+  const lines = [];
+  for (let l = count, j = n; l > 0; l--) {
+    const i = prev[l][j];
+    lines.unshift(units.slice(i, j).join(' '));
+    j = i;
+  }
+  return lines;
+}
+
+/**
+ * Czytelne łamanie tekstu slajdu: Enter wymusza nową linię, myślniki nie zaczynają linii,
+ * krótkie słowa i liczby nie wiszą na końcu, a linie mają wyrównaną długość.
+ * Gdyby coś się nie zmieściło, wraca do zwykłego łamania (getLines).
+ */
+export function getReadableLines(ctx, text, maxW) {
+  const out = [];
+  for (const paragraph of text.split(/\r?\n/)) {
+    const trimmed = paragraph.trim();
+    if (!trimmed) continue;
+    const lines = balanceParagraph(ctx, trimmed, maxW);
+    const ok = lines && lines.every((l) => ctx.measureText(l).width <= maxW);
+    out.push(...(ok ? lines : getLines(ctx, trimmed.replace(/\s+/g, ' '), maxW)));
+  }
+  return out;
+}
+
 function logoElements(assets) {
   const elements = [];
   if (assets.logoImg) elements.push({ img: assets.logoImg, w: 55, h: 55 });
@@ -513,7 +614,7 @@ export function drawSlide(canvas, cfg, assets, slide, format, isReelCoverForGrid
     for (;;) {
       ctx.font = `500 ${fontSize}px "DM Sans"`;
       lineHeight = fontSize * 1.4;
-      lines = getLines(ctx, text, maxTextW);
+      lines = getReadableLines(ctx, text, maxTextW);
       const tooBig = lines.length * lineHeight > textH - padding * 1.5 || lines.some((l) => ctx.measureText(l).width > maxTextW);
       if (!tooBig || fontSize <= 14) break;
       fontSize -= 1.5;
