@@ -156,6 +156,7 @@ const OPEN_QUOTE_RE = /^[„"“«(]/;
 const CLOSE_QUOTE_RE = /[”"»)][”"»)]*[.,;:!?…]*$/;
 const STARTS_UPPER_RE = /^[„"“«(]?[A-ZĄĆĘŁŃÓŚŹŻ]/;
 const ENDS_CLAUSE_RE = /[.,;:!?…–—]$/;
+const ORDINAL_RE = /^\d+\.$/; // liczebnik porządkowy ("1. miejscu")
 
 /** Słowa akapitu; myślnik dokleja się do poprzedniego słowa, żeby nigdy nie zaczynał linii. */
 function textWords(paragraph) {
@@ -184,7 +185,8 @@ function breakPenalties(words, maxW) {
     const next = words[i + 1];
     if (!inQuote && OPEN_QUOTE_RE.test(w) && !CLOSE_QUOTE_RE.test(w.slice(1))) inQuote = true;
     else if (inQuote && CLOSE_QUOTE_RE.test(w)) inQuote = false;
-    if (SHORT_WORD_RE.test(w) || NUMBER_RE.test(w) || isAbbrev(w)) pen[i] += glue;
+    if (SHORT_WORD_RE.test(w) || NUMBER_RE.test(w) || isAbbrev(w) || (ORDINAL_RE.test(w) && /^[a-ząćęłńóśźż]/.test(next))) pen[i] += glue;
+    else if (ORDINAL_RE.test(next) && i + 2 < words.length && /^[a-ząćęłńóśźż]/.test(words[i + 2])) pen[i] += keep;
     else if (inQuote) pen[i] += keep;
     else if (!ENDS_CLAUSE_RE.test(w) && STARTS_UPPER_RE.test(lastWord(w)) && STARTS_UPPER_RE.test(next)) pen[i] += keep;
     else if (BREAK_AFTER_RE.test(w)) pen[i] -= bonus;
@@ -192,29 +194,59 @@ function breakPenalties(words, maxW) {
   return pen;
 }
 
+/** Szerokości słów i odstępu oraz limit szerokości dla linii o danym numerze. */
+function measureWords(ctx, words, maxW, firstW) {
+  return {
+    widths: words.map((w) => ctx.measureText(w).width),
+    space: ctx.measureText(' ').width,
+    limit: (line) => (line === 0 ? firstW : maxW),
+  };
+}
+
+/** Najmniejsza liczba linii (zwykłe łamanie zachłanne). 0 = jakieś słowo się nie mieści. */
+function greedyCount({ widths, space, limit }) {
+  let count = 1;
+  let current = widths[0];
+  if (current > limit(0)) return 0;
+  for (let k = 1; k < widths.length; k++) {
+    if (current + space + widths[k] <= limit(count - 1)) current += space + widths[k];
+    else {
+      if (widths[k] > limit(count)) return 0;
+      count++;
+      current = widths[k];
+    }
+  }
+  return count;
+}
+
 /**
- * Łamie słowa na dokładnie `count` linii o wyrównanej długości (minimalna suma kwadratów
- * wolnego miejsca + kary za złe miejsca łamania). Zwraca null, gdy się nie da;
- * `lines.bad` = liczba złamań w miejscach, których chcieliśmy uniknąć.
+ * Łamie słowa na dokładnie `count` linii. Domyślnie wyrównuje długość linii (minimalna suma
+ * kwadratów wolnego miejsca); `fill` – wypełnia linie do pełnej szerokości, a krótsza może być
+ * tylko ostatnia (byle nie z jednym słowem). Do tego kary za złe miejsca łamania.
+ * Zwraca null, gdy się nie da; `lines.bad` = liczba złamań w miejscach, których chcieliśmy uniknąć.
  */
-function balanceWords(ctx, words, maxW, count) {
-  if (count === 1) return Object.assign([words.join(' ')], { bad: 0 });
+function balanceWords(ctx, words, m, count, fill) {
   const n = words.length;
+  if (count === 1) return Object.assign([words.join(' ')], { bad: 0 });
   if (n < count) return null;
-  const space = ctx.measureText(' ').width;
-  const widths = words.map((w) => ctx.measureText(w).width);
+  const { widths, space, limit } = m;
+  const maxW = limit(1);
   const pen = breakPenalties(words, maxW);
+  const shortLast = maxW * 0.3;
   const cost = Array.from({ length: count + 1 }, () => new Array(n + 1).fill(Infinity));
   const prev = Array.from({ length: count + 1 }, () => new Array(n + 1).fill(-1));
   cost[0][0] = 0;
   for (let l = 1; l <= count; l++) {
+    const lineW = limit(l - 1);
     for (let j = 1; j <= n; j++) {
       let w = -space;
       for (let i = j - 1; i >= 0; i--) {
         w += widths[i] + space;
-        if (w > maxW) break;
+        if (w > lineW) break;
         if (cost[l - 1][i] === Infinity) continue;
-        const c = cost[l - 1][i] + (maxW - w) ** 2 + (j < n ? pen[j - 1] : 0);
+        let c = cost[l - 1][i];
+        if (j < n) c += (lineW - w) ** 2 + pen[j - 1];
+        else c += fill ? 4 * Math.max(0, shortLast - w) ** 2 : (lineW - w) ** 2;
         if (c < cost[l][j]) { cost[l][j] = c; prev[l][j] = i; }
       }
     }
@@ -228,7 +260,7 @@ function balanceWords(ctx, words, maxW, count) {
     if (j < n && pen[j - 1] > 0) lines.bad++;
     j = i;
   }
-  return lines.every((line) => ctx.measureText(line).width <= maxW) ? lines : null;
+  return lines.every((line, k) => ctx.measureText(line).width <= limit(k)) ? lines : null;
 }
 
 /**
@@ -236,22 +268,27 @@ function balanceWords(ctx, words, maxW, count) {
  * zaczynają linii, krótkie słowa, liczby i skróty nie wiszą na końcu, tytuły w cudzysłowie
  * i nazwy własne w miarę możliwości nie są rozdzielane, a linie mają wyrównaną długość.
  * Liczba linii zostaje taka jak przy zwykłym łamaniu, więc wielkość czcionki się nie zmienia.
- * `extraLine` (kalendarium): pozwala na jedną linię więcej, jeśli tylko tak da się uniknąć
- * złego miejsca łamania.
+ * Opcje (kalendarium):
+ *  - extraLine – pozwala na jedną linię więcej, jeśli tylko tak da się uniknąć złego złamania,
+ *  - fill – linie wypełnione do pełnej szerokości zamiast wyrównanych,
+ *  - firstW – inna szerokość pierwszej linii (np. miejsce na plakietkę z rokiem).
  */
-export function getReadableLines(ctx, text, maxW, extraLine = false) {
+export function getReadableLines(ctx, text, maxW, { extraLine = false, fill = false, firstW = maxW } = {}) {
   const out = [];
   for (const paragraph of text.split(/\r?\n/)) {
     const trimmed = paragraph.trim().replace(/\s+/g, ' ');
     if (!trimmed) continue;
-    const greedy = getLines(ctx, trimmed, maxW);
+    const lineW = out.length ? maxW : firstW;
     const words = textWords(trimmed);
-    let lines = balanceWords(ctx, words, maxW, greedy.length);
+    const m = measureWords(ctx, words, maxW, lineW);
+    const count = greedyCount(measureWords(ctx, trimmed.split(' '), maxW, lineW));
+    let lines = count ? balanceWords(ctx, words, m, count, fill) : null;
+    if (extraLine && count && !lines) lines = balanceWords(ctx, words, m, count + 1, fill);
     if (extraLine && lines && lines.bad > 0) {
-      const more = balanceWords(ctx, words, maxW, greedy.length + 1);
+      const more = balanceWords(ctx, words, m, count + 1, fill);
       if (more && more.bad < lines.bad) lines = more;
     }
-    out.push(...(lines || greedy));
+    out.push(...(lines || getLines(ctx, trimmed, lineW)));
   }
   return out;
 }
@@ -377,6 +414,7 @@ export function drawCalendarSlide(canvas, cfg, assets, renderScale = 2, hideLogo
   // 5. Wydarzenia – dopasowanie wielkości fontu do dostępnego miejsca
   const margin = 100;
   const maxTextW = W - margin * 2;
+  const eventTextW = maxTextW; // tekst od lewego marginesu do ~50 px przed prawą krawędzią kafelka
   const eventLines = eventsTxt.split('\n').filter((l) => l.trim() !== '');
   const availableH = H - topSectionY - 100;
   let fontSize = 44;
@@ -392,7 +430,16 @@ export function drawCalendarSlide(canvas, cfg, assets, renderScale = 2, hideLogo
     for (const extraLine of [true, false]) {
       totalH = 0;
       computedEvents = eventLines.map((ev) => {
-        const lines = getReadableLines(ctx, ev, maxTextW - 80, extraLine);
+        // Plakietka z rokiem jest szersza niż sam tekst roku – pierwsza linia ma mniej miejsca
+        const year = ev.trim().match(/^(\d{4}[.:-]?)\s/);
+        let firstW = eventTextW;
+        if (year) {
+          const plain = ctx.measureText(year[1] + ' ').width;
+          ctx.font = `800 ${fontSize}px "DM Sans"`;
+          firstW -= ctx.measureText(year[1]).width + 12 * 2 + 16 - plain;
+          ctx.font = `500 ${fontSize}px "DM Sans"`;
+        }
+        const lines = getReadableLines(ctx, ev, eventTextW, { extraLine, fill: true, firstW });
         const boxH = lines.length * lineHeight + paddingY * 2;
         totalH += boxH + spaceBetween;
         return { lines, boxH, lineHeight, paddingY, spaceBetween };
