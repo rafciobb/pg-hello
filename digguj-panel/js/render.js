@@ -152,94 +152,106 @@ const ABBREV_RE = /^[„"(]?(?:np|tzw|m\.in|ok|ul|św|dr|nr|im|tj|godz|ang|ks|pr
 const isAbbrev = (w) => w.length <= 6 && ABBREV_RE.test(w) && (/\.$/.test(w) || /^(?:dr|nr|ks|prof|mgr|inż)$/i.test(w));
 const BREAK_AFTER_RE = /[.,;:!?…–—)»”"]$/; // naturalne miejsce na koniec linii
 
-/**
- * Dzieli akapit na nierozdzielne "kawałki" według polskich zasad składu:
- * myślnik dokleja się do poprzedniego słowa (nie zaczyna linii), a jednoliterowe
- * słowa i liczby – do następnego (nie zostają same na końcu linii).
- */
-function textUnits(paragraph) {
-  const words = paragraph.split(/\s+/).filter(Boolean);
-  const units = [];
-  let carry = '';
-  for (const word of words) {
-    if (DASH_RE.test(word) && !carry && units.length) {
-      units[units.length - 1] += ' ' + word;
-      continue;
-    }
-    const piece = carry ? carry + ' ' + word : word;
-    if (SHORT_WORD_RE.test(word) || NUMBER_RE.test(word) || isAbbrev(word)) {
-      carry = piece;
-      continue;
-    }
-    units.push(piece);
-    carry = '';
+const OPEN_QUOTE_RE = /^[„"“«(]/;
+const CLOSE_QUOTE_RE = /[”"»)][”"»)]*[.,;:!?…]*$/;
+const STARTS_UPPER_RE = /^[„"“«(]?[A-ZĄĆĘŁŃÓŚŹŻ]/;
+const ENDS_CLAUSE_RE = /[.,;:!?…–—]$/;
+
+/** Słowa akapitu; myślnik dokleja się do poprzedniego słowa, żeby nigdy nie zaczynał linii. */
+function textWords(paragraph) {
+  const words = [];
+  for (const word of paragraph.split(' ')) {
+    if (DASH_RE.test(word) && words.length) words[words.length - 1] += ' ' + word;
+    else words.push(word);
   }
-  if (carry) units.push(carry);
-  return units;
+  return words;
 }
 
-/** Łamie akapit na tyle samo linii co zwykle, ale z wyrównaną długością linii. */
-function balanceParagraph(ctx, paragraph, maxW) {
-  const units = textUnits(paragraph);
-  if (units.length < 2) return units;
-  const space = ctx.measureText(' ').width;
-  const widths = units.map((u) => ctx.measureText(u).width);
-  const lineWidth = (i, j) => {
-    let w = 0;
-    for (let k = i; k <= j; k++) w += widths[k];
-    return w + space * (j - i);
-  };
-
-  // Najmniejsza możliwa liczba linii (zachłannie, po kawałkach)
-  let count = 1;
-  let current = widths[0];
-  for (let k = 1; k < units.length; k++) {
-    if (current + space + widths[k] > maxW) { count++; current = widths[k]; } else current += space + widths[k];
-  }
-  if (count === 1) return [units.join(' ')];
-
-  // Programowanie dynamiczne: dokładnie `count` linii, minimalna suma kwadratów wolnego miejsca
-  // (= linie o podobnej długości) z lekką premią za koniec linii na znaku interpunkcyjnym.
-  const n = units.length;
+/**
+ * Kara za złamanie linii po słowie `i` (0 = obojętnie, ujemna = dobre miejsce):
+ * nie zostawiamy na końcu linii jednoliterowych słów, liczb i skrótów, nie rozdzielamy
+ * tytułów w cudzysłowie („Brand New Day”) ani nazw własnych (Los Angeles, Paul McCartney).
+ */
+function breakPenalties(words, maxW) {
+  const glue = (maxW * 0.45) ** 2;
+  const keep = (maxW * 0.35) ** 2;
   const bonus = (maxW * 0.12) ** 2;
+  const lastWord = (w) => w.slice(w.lastIndexOf(' ') + 1);
+  const pen = new Array(words.length).fill(0);
+  let inQuote = false;
+  for (let i = 0; i < words.length - 1; i++) {
+    const w = words[i];
+    const next = words[i + 1];
+    if (!inQuote && OPEN_QUOTE_RE.test(w) && !CLOSE_QUOTE_RE.test(w.slice(1))) inQuote = true;
+    else if (inQuote && CLOSE_QUOTE_RE.test(w)) inQuote = false;
+    if (SHORT_WORD_RE.test(w) || NUMBER_RE.test(w) || isAbbrev(w)) pen[i] += glue;
+    else if (inQuote) pen[i] += keep;
+    else if (!ENDS_CLAUSE_RE.test(w) && STARTS_UPPER_RE.test(lastWord(w)) && STARTS_UPPER_RE.test(next)) pen[i] += keep;
+    else if (BREAK_AFTER_RE.test(w)) pen[i] -= bonus;
+  }
+  return pen;
+}
+
+/**
+ * Łamie słowa na dokładnie `count` linii o wyrównanej długości (minimalna suma kwadratów
+ * wolnego miejsca + kary za złe miejsca łamania). Zwraca null, gdy się nie da;
+ * `lines.bad` = liczba złamań w miejscach, których chcieliśmy uniknąć.
+ */
+function balanceWords(ctx, words, maxW, count) {
+  if (count === 1) return Object.assign([words.join(' ')], { bad: 0 });
+  const n = words.length;
+  if (n < count) return null;
+  const space = ctx.measureText(' ').width;
+  const widths = words.map((w) => ctx.measureText(w).width);
+  const pen = breakPenalties(words, maxW);
   const cost = Array.from({ length: count + 1 }, () => new Array(n + 1).fill(Infinity));
   const prev = Array.from({ length: count + 1 }, () => new Array(n + 1).fill(-1));
   cost[0][0] = 0;
   for (let l = 1; l <= count; l++) {
     for (let j = 1; j <= n; j++) {
+      let w = -space;
       for (let i = j - 1; i >= 0; i--) {
-        const w = lineWidth(i, j - 1);
-        if (w > maxW && j - 1 > i) break;
+        w += widths[i] + space;
+        if (w > maxW) break;
         if (cost[l - 1][i] === Infinity) continue;
-        let c = cost[l - 1][i] + (maxW - w) ** 2;
-        if (j < n && BREAK_AFTER_RE.test(units[j - 1])) c -= bonus;
+        const c = cost[l - 1][i] + (maxW - w) ** 2 + (j < n ? pen[j - 1] : 0);
         if (c < cost[l][j]) { cost[l][j] = c; prev[l][j] = i; }
       }
     }
   }
   if (cost[count][n] === Infinity) return null;
   const lines = [];
+  lines.bad = 0;
   for (let l = count, j = n; l > 0; l--) {
     const i = prev[l][j];
-    lines.unshift(units.slice(i, j).join(' '));
+    lines.unshift(words.slice(i, j).join(' '));
+    if (j < n && pen[j - 1] > 0) lines.bad++;
     j = i;
   }
-  return lines;
+  return lines.every((line) => ctx.measureText(line).width <= maxW) ? lines : null;
 }
 
 /**
- * Czytelne łamanie tekstu slajdu: Enter wymusza nową linię, myślniki nie zaczynają linii,
- * krótkie słowa i liczby nie wiszą na końcu, a linie mają wyrównaną długość.
- * Gdyby coś się nie zmieściło, wraca do zwykłego łamania (getLines).
+ * Czytelne łamanie tekstu (slajdy, rolki, kalendarium): Enter wymusza nową linię, myślniki nie
+ * zaczynają linii, krótkie słowa, liczby i skróty nie wiszą na końcu, tytuły w cudzysłowie
+ * i nazwy własne w miarę możliwości nie są rozdzielane, a linie mają wyrównaną długość.
+ * Liczba linii zostaje taka jak przy zwykłym łamaniu, więc wielkość czcionki się nie zmienia.
+ * `extraLine` (kalendarium): pozwala na jedną linię więcej, jeśli tylko tak da się uniknąć
+ * złego miejsca łamania.
  */
-export function getReadableLines(ctx, text, maxW) {
+export function getReadableLines(ctx, text, maxW, extraLine = false) {
   const out = [];
   for (const paragraph of text.split(/\r?\n/)) {
-    const trimmed = paragraph.trim();
+    const trimmed = paragraph.trim().replace(/\s+/g, ' ');
     if (!trimmed) continue;
-    const lines = balanceParagraph(ctx, trimmed, maxW);
-    const ok = lines && lines.every((l) => ctx.measureText(l).width <= maxW);
-    out.push(...(ok ? lines : getLines(ctx, trimmed.replace(/\s+/g, ' '), maxW)));
+    const greedy = getLines(ctx, trimmed, maxW);
+    const words = textWords(trimmed);
+    let lines = balanceWords(ctx, words, maxW, greedy.length);
+    if (extraLine && lines && lines.bad > 0) {
+      const more = balanceWords(ctx, words, maxW, greedy.length + 1);
+      if (more && more.bad < lines.bad) lines = more;
+    }
+    out.push(...(lines || greedy));
   }
   return out;
 }
@@ -376,14 +388,18 @@ export function drawCalendarSlide(canvas, cfg, assets, renderScale = 2, hideLogo
     const lineHeight = Math.round(fontSize * 1.4);
     const paddingY = Math.round(fontSize * 0.8);
     const spaceBetween = Math.round(fontSize * 0.9);
-    totalH = 0;
-    computedEvents = eventLines.map((ev) => {
-      const lines = getLines(ctx, ev, maxTextW - 80);
-      const boxH = lines.length * lineHeight + paddingY * 2;
-      totalH += boxH + spaceBetween;
-      return { lines, boxH, lineHeight, paddingY, spaceBetween };
-    });
-    if (computedEvents.length > 0) totalH -= spaceBetween;
+    // Najpierw z dodatkową linią tam, gdzie poprawia czytelność; jeśli się nie mieści – bez niej
+    for (const extraLine of [true, false]) {
+      totalH = 0;
+      computedEvents = eventLines.map((ev) => {
+        const lines = getReadableLines(ctx, ev, maxTextW - 80, extraLine);
+        const boxH = lines.length * lineHeight + paddingY * 2;
+        totalH += boxH + spaceBetween;
+        return { lines, boxH, lineHeight, paddingY, spaceBetween };
+      });
+      if (computedEvents.length > 0) totalH -= spaceBetween;
+      if (totalH <= availableH) break;
+    }
     if (totalH <= availableH || fontSize <= 18) break;
     fontSize -= 2;
   }
