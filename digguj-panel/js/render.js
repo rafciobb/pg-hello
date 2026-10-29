@@ -406,9 +406,16 @@ export function drawCalendarSlide(canvas, cfg, assets, renderScale = 2, hideLogo
   ctx.fillText('TEGO DNIA W MUZYCE', W / 2, topSectionY);
   topSectionY += 60;
 
-  ctx.fillStyle = '#ffffff';
+  // Data: 120 px, a gdy się nie mieści (np. "30 PAŹDZIERNIKA") – zmniejszona tak, żeby po obu
+  // stronach zostało po 60 px (jak przy kafelkach wydarzeń); pionowo wyśrodkowana w tym samym miejscu
+  const dateMaxW = W - 60 * 2;
   ctx.font = '900 120px "Montserrat"';
-  ctx.fillText(dateTxt, W / 2, topSectionY);
+  const dm = ctx.measureText(dateTxt);
+  const dateInkW = (dm.actualBoundingBoxLeft ?? 0) + (dm.actualBoundingBoxRight ?? 0) || dm.width;
+  const dateSize = dateInkW > dateMaxW ? Math.floor(120 * dateMaxW / dateInkW) : 120;
+  ctx.fillStyle = '#ffffff';
+  ctx.font = `900 ${dateSize}px "Montserrat"`;
+  ctx.fillText(dateTxt, W / 2, topSectionY + (120 - dateSize) / 2);
   topSectionY += 180;
 
   // 5. Wydarzenia – dopasowanie wielkości fontu do dostępnego miejsca
