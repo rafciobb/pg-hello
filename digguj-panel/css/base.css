@@ -1,5 +1,5 @@
 /* Fonty serwowane z własnego serwera (pakiety @fontsource) – grafiki na canvasie zawsze renderują się tym samym krojem */
-@import url('/fonts/fonts.css');
+@import url('../fonts/fonts.css');
 
 :root {
   --bg: #0a0a0a; --surface: #141414; --surface2: #1c1c1c;

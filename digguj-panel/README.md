@@ -65,7 +65,7 @@ Potrzebujesz: dostępu do **OVH Managera**, programu do FTP (np. darmowa **[File
 
 Po kilku minutach w zakładce **„Informacje ogólne” → Certyfikat SSL** upewnij się, że certyfikat obejmuje nową subdomenę (w razie potrzeby „Wygeneruj ponownie certyfikat SSL”).
 
-> Panel musi działać w „korzeniu” adresu (np. `https://panel.twojadomena.pl/`), a nie w podfolderze typu `twojadomena.pl/panel/`.
+> Panel może też działać w podfolderze istniejącej strony (np. `https://twojadomena.pl/digguj/`) – wtedy ten krok pomiń i w kroku 3 wgraj pliki do folderu `www/digguj`. Folder wykrywa się sam, nic nie trzeba ustawiać.
 
 ### 3. Wgranie plików (FTP)
 Dane FTP: **Hosting → zakładka „FTP – SSH”** (serwer, login; hasło możesz tam zmienić).
@@ -86,6 +86,14 @@ Gotowe – zaloguj się pod `https://panel.twojadomena.pl`.
 
 ### Aktualizacja do nowej wersji
 Wgraj nowe pliki przez FTP w to samo miejsce (nadpisz). **Nie usuwaj** `config.php` ani `storage/uploads/` – to Twoja konfiguracja i zdjęcia. Zmiany w bazie wykonają się same przy pierwszym wejściu.
+
+### Przeniesienie panelu do innego folderu (bez utraty postów)
+Posty są w bazie danych, a zdjęcia w `storage/uploads/` – oba trzeba zachować:
+1. Wgraj pliki panelu do nowego folderu.
+2. Skopiuj ze starego folderu do nowego **`config.php`** i całą zawartość **`storage/uploads/`** (przez FTP: pobierz na komputer, potem wgraj).
+3. Otwórz panel pod nowym adresem i zaloguj się jak dotąd. Stary folder usuń dopiero, gdy wszystko działa.
+
+Bez `config.php` panel pokaże `/install` – podaj **te same dane bazy** oraz login i hasło **istniejącego** konta: instalator tylko podłączy bazę, niczego nie kasuje.
 
 ### Zapomniane hasło / kolejne konto
 Wejdź na `/install`, podaj **klucz odzyskiwania** (`setup_key` z pliku `config.php` – podejrzysz go przez FTP), login i nowe hasło. Istniejący login → zmiana hasła, nowy login → nowe konto.

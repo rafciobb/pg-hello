@@ -20,7 +20,7 @@ AddType text/javascript .js
   RewriteRule (^|/)\.(?!well-known/) - [R=404,L]
   RewriteRule ^(config\.php|config\.sample\.php|package(-lock)?\.json|.*\.md)$ - [R=404,L]
   RewriteCond %{ENV:REDIRECT_STATUS} ^$
-  RewriteCond %{REQUEST_URI} !^/index\.php$
+  RewriteCond %{REQUEST_URI} !/index\.php$
   RewriteRule \.php$ - [R=404,L]
 
   # 3. Wszystko, co nie jest istniejącym plikiem (strony, API, zdjęcia) → index.php

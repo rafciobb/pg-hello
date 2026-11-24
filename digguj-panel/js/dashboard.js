@@ -20,9 +20,9 @@ function currentFilters() {
 async function loadPosts() {
   const params = currentFilters();
   // Filtry trzymamy w adresie – odświeżenie strony / powrót z edytora ich nie gubi
-  history.replaceState(null, '', params.toString() === 'sort=updated' ? '/' : `/?${params}`);
+  history.replaceState(null, '', params.toString() === 'sort=updated' ? './' : `./?${params}`);
   try {
-    posts = (await api(`/api/posts?${params}`)).posts;
+    posts = (await api(`api/posts?${params}`)).posts;
     renderPosts();
   } catch (err) {
     $('posts').innerHTML = `<p class="empty">Nie udało się wczytać postów: ${esc(err.message)}</p>`;
@@ -31,7 +31,7 @@ async function loadPosts() {
 
 async function loadStats() {
   try {
-    const all = (await api('/api/posts')).posts;
+    const all = (await api('api/posts')).posts;
     const counts = { all: all.length, draft: 0, ready: 0, scheduled: 0, published: 0 };
     all.forEach((p) => { counts[p.status] += 1; });
     const active = $('filterStatus').value;
@@ -51,11 +51,11 @@ function renderPosts() {
   }
   box.innerHTML = posts.map((p) => `
     <article class="post-card" data-id="${p.id}">
-      <a class="post-thumb" href="/editor?id=${p.id}">
+      <a class="post-thumb" href="editor?id=${p.id}">
         ${p.thumbUrl ? `<img src="${esc(p.thumbUrl)}" alt="" loading="lazy">` : '<span class="no-thumb">Brak podglądu</span>'}
       </a>
       <div class="post-body">
-        <a class="post-title" href="/editor?id=${p.id}">${esc(p.title || 'Bez tytułu')}</a>
+        <a class="post-title" href="editor?id=${p.id}">${esc(p.title || 'Bez tytułu')}</a>
         <div class="post-meta">
           <span class="badge badge-${p.status}">${esc(STATUS_LABELS[p.status])}</span>
           <span class="badge">${esc(MODE_LABELS[p.mode])}</span>
@@ -78,8 +78,8 @@ function renderPosts() {
 
 async function createPost(mode) {
   try {
-    const { post } = await api('/api/posts', { method: 'POST', body: { mode } });
-    location.href = `/editor?id=${post.id}`;
+    const { post } = await api('api/posts', { method: 'POST', body: { mode } });
+    location.href = `editor?id=${post.id}`;
   } catch (err) {
     toast(err.message, 'error');
   }
@@ -95,18 +95,18 @@ async function onPostAction(e) {
 
   try {
     if (action === 'status' && e.type === 'change') {
-      const { post: updated } = await api(`/api/posts/${post.id}`, { method: 'PUT', body: { version: post.version, status: el.value } });
+      const { post: updated } = await api(`api/posts/${post.id}`, { method: 'PUT', body: { version: post.version, status: el.value } });
       Object.assign(post, updated);
       toast(`Status: ${STATUS_LABELS[updated.status]}`, 'ok');
       renderPosts();
       loadStats();
     } else if (action === 'duplicate' && e.type === 'click') {
-      await api(`/api/posts/${post.id}/duplicate`, { method: 'POST' });
+      await api(`api/posts/${post.id}/duplicate`, { method: 'POST' });
       toast('Utworzono kopię posta.', 'ok');
       await Promise.all([loadPosts(), loadStats()]);
     } else if (action === 'delete' && e.type === 'click') {
       if (!confirm(`Usunąć post „${post.title || 'Bez tytułu'}”? Tej operacji nie można cofnąć.`)) return;
-      await api(`/api/posts/${post.id}`, { method: 'DELETE' });
+      await api(`api/posts/${post.id}`, { method: 'DELETE' });
       toast('Post usunięty.', 'ok');
       await Promise.all([loadPosts(), loadStats()]);
     }
@@ -125,7 +125,7 @@ async function changePassword(e) {
     return;
   }
   try {
-    await api('/api/auth/password', {
+    await api('api/auth/password', {
       method: 'POST',
       body: { currentPassword: $('currentPassword').value, newPassword: $('newPassword').value },
     });
@@ -170,7 +170,7 @@ async function init() {
   // Po powrocie z edytora przyciskiem "wstecz" przeglądarka może pokazać starą wersję strony z cache
   window.addEventListener('pageshow', (e) => { if (e.persisted) { loadPosts(); loadStats(); } });
 
-  api('/api/auth/me').then(({ user }) => { $('userName').textContent = `👤 ${user.username}`; }).catch(() => {});
+  api('api/auth/me').then(({ user }) => { $('userName').textContent = `👤 ${user.username}`; }).catch(() => {});
   await Promise.all([loadPosts(), loadStats()]);
 }
 

@@ -22,7 +22,7 @@ final class Installer
         header('Cache-Control: no-store');
         echo '<!DOCTYPE html><html lang="pl"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">'
             . '<meta name="robots" content="noindex, nofollow"><title>' . self::h($title) . ' • DIGGUJ FAKTY</title>'
-            . '<link rel="stylesheet" href="/css/base.css"><style>'
+            . '<link rel="stylesheet" href="css/base.css"><style>'
             . 'body{display:flex;justify-content:center;padding:40px 16px}main{width:100%;max-width:560px;display:flex;flex-direction:column;gap:18px}'
             . 'h1{font-family:Montserrat,sans-serif;font-weight:900;color:var(--accent);font-size:26px}h2{font-family:Montserrat,sans-serif;font-size:15px;letter-spacing:1px;color:var(--muted);margin-bottom:4px}'
             . 'form{display:flex;flex-direction:column;gap:12px}p,li{font-size:13px;line-height:1.5;color:#ccc}code{font-family:"Space Mono",monospace;color:var(--accent);word-break:break-all}'
@@ -150,7 +150,7 @@ final class Installer
         $body = '<div class="card ok"><h2>GOTOWE ✓</h2><p>Panel jest zainstalowany, a Twoje konto <b>' . self::h($login) . '</b> utworzone.</p>'
             . '<p>Zapisz w bezpiecznym miejscu <b>klucz odzyskiwania</b> (jest też w pliku <code>config.php</code> na serwerze) – '
             . 'przyda się, gdy zapomnisz hasła:</p><p><code>' . self::h($setupKey) . '</code></p></div>'
-            . '<a class="btn btn-primary" href="/login">PRZEJDŹ DO LOGOWANIA →</a>';
+            . '<a class="btn btn-primary" href="login">PRZEJDŹ DO LOGOWANIA →</a>';
         self::page('Gotowe', $body);
     }
 
@@ -158,7 +158,7 @@ final class Installer
     private static function recoveryForm(bool $hasUsers, string $error, string $message): never
     {
         $intro = $hasUsers
-            ? '<div class="card"><h2>PANEL JEST ZAINSTALOWANY</h2><p><a href="/login" style="color:var(--accent)">Przejdź do logowania →</a></p>'
+            ? '<div class="card"><h2>PANEL JEST ZAINSTALOWANY</h2><p><a href="login" style="color:var(--accent)">Przejdź do logowania →</a></p>'
                 . '<p>Poniżej możesz <b>zmienić zapomniane hasło</b> albo <b>dodać kolejne konto</b>. Potrzebny jest klucz odzyskiwania '
                 . '(<code>setup_key</code> z pliku <code>config.php</code> na serwerze – podejrzysz go przez FTP).</p></div>'
             : '<div class="card"><h2>ZAŁÓŻ PIERWSZE KONTO</h2><p>Baza jest skonfigurowana, ale nie ma jeszcze żadnego konta. '
@@ -206,9 +206,9 @@ final class Installer
         if ($user) {
             Db::exec('UPDATE users SET password_hash = ? WHERE id = ?', [Auth::hash($password), $user['id']]);
             Db::exec('DELETE FROM sessions WHERE user_id = ?', [$user['id']]);
-            return ['', 'Zmieniono hasło konta <b>' . self::h($login) . '</b>. <a href="/login" style="color:var(--accent)">Zaloguj się →</a>'];
+            return ['', 'Zmieniono hasło konta <b>' . self::h($login) . '</b>. <a href="login" style="color:var(--accent)">Zaloguj się →</a>'];
         }
         Db::exec('INSERT INTO users (username, password_hash) VALUES (?, ?)', [$login, Auth::hash($password)]);
-        return ['', 'Utworzono konto <b>' . self::h($login) . '</b>. <a href="/login" style="color:var(--accent)">Zaloguj się →</a>'];
+        return ['', 'Utworzono konto <b>' . self::h($login) . '</b>. <a href="login" style="color:var(--accent)">Zaloguj się →</a>'];
     }
 }

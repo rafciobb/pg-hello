@@ -97,7 +97,7 @@ final class Auth
         session_name(self::COOKIE);
         session_set_cookie_params([
             'lifetime' => $lifetime,
-            'path' => '/',
+            'path' => Http::url('/'),
             'secure' => Http::isHttps(),
             'httponly' => true,
             'samesite' => 'Lax',
@@ -111,7 +111,7 @@ final class Auth
     {
         setcookie(self::COOKIE, session_id(), [
             'expires' => time() + self::lifetime(),
-            'path' => '/',
+            'path' => Http::url('/'),
             'secure' => Http::isHttps(),
             'httponly' => true,
             'samesite' => 'Lax',
@@ -216,7 +216,7 @@ final class Auth
             $_SESSION = [];
             session_destroy();
         }
-        setcookie(self::COOKIE, '', ['expires' => time() - 3600, 'path' => '/', 'secure' => Http::isHttps(), 'httponly' => true, 'samesite' => 'Lax']);
+        setcookie(self::COOKIE, '', ['expires' => time() - 3600, 'path' => Http::url('/'), 'secure' => Http::isHttps(), 'httponly' => true, 'samesite' => 'Lax']);
         Http::json(['ok' => true]);
     }
 

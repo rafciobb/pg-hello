@@ -4,9 +4,9 @@ import { $, hideBrokenImages } from './ui.js';
 hideBrokenImages();
 
 function safeNext() {
-  const next = new URLSearchParams(location.search).get('next') || '/';
+  const next = new URLSearchParams(location.search).get('next') || './';
   // Tylko ścieżki w obrębie panelu (bez przekierowań na obce domeny)
-  return next.startsWith('/') && !next.startsWith('//') && !next.startsWith('/\\') ? next : '/';
+  return next.startsWith('/') && !next.startsWith('//') && !next.startsWith('/\\') ? next : './';
 }
 
 $('loginForm').addEventListener('submit', async (e) => {
@@ -16,7 +16,7 @@ $('loginForm').addEventListener('submit', async (e) => {
   btn.disabled = true;
   btn.textContent = '⏳ LOGOWANIE…';
   try {
-    await api('/api/auth/login', {
+    await api('api/auth/login', {
       method: 'POST',
       body: { username: $('username').value, password: $('password').value },
     });

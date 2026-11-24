@@ -1,5 +1,5 @@
 // Eksport gotowych materiałów: ZIP z karuzelą, pojedyncza grafika, wideo MP4 (+ okładka i opis).
-// JSZip i Mp4Muxer są ładowane jako zwykłe skrypty (/vendor/...) i dostępne globalnie.
+// JSZip i Mp4Muxer są ładowane jako zwykłe skrypty (vendor/...) i dostępne globalnie.
 import { buildVideoSlides, drawReelGridCover, frameState, renderVideoFrame, videoTiming } from './render.js';
 
 const VIDEO_W = 1080;

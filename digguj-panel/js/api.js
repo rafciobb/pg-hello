@@ -31,8 +31,8 @@ export async function api(path, { method = 'GET', body, form } = {}) {
 
   const data = (res.headers.get('content-type') || '').includes('application/json') ? await res.json() : null;
 
-  if (res.status === 401 && !path.startsWith('/api/auth/')) {
-    location.href = '/login?next=' + encodeURIComponent(location.pathname + location.search);
+  if (res.status === 401 && !path.startsWith('api/auth/')) {
+    location.href = 'login?next=' + encodeURIComponent(location.pathname + location.search);
     throw new ApiError('Sesja wygasła – zaloguj się ponownie.', 401, data);
   }
   if (!res.ok) throw new ApiError(data?.error || `Błąd serwera (${res.status}).`, res.status, data);
@@ -40,5 +40,5 @@ export async function api(path, { method = 'GET', body, form } = {}) {
 }
 
 export async function logout() {
-  try { await api('/api/auth/logout', { method: 'POST' }); } finally { location.href = '/login'; }
+  try { await api('api/auth/logout', { method: 'POST' }); } finally { location.href = 'login'; }
 }

@@ -26,6 +26,12 @@ Http::securityHeaders();
 
 $path = Http::path();
 $method = Http::method();
+
+// Panel w podfolderze otwarty bez ukośnika na końcu (domena.pl/digguj) → domena.pl/digguj/
+if ($path === '') {
+    header('Location: ' . Http::url('/'), true, 301);
+    exit;
+}
 $isApi = str_starts_with($path, '/api/');
 
 set_exception_handler(function (\Throwable $e) use ($isApi): void {
@@ -71,7 +77,7 @@ function page(string $file): never
 function requirePage(): void
 {
     if (!Auth::user()) {
-        header('Location: /login?next=' . rawurlencode($_SERVER['REQUEST_URI'] ?? '/'), true, 302);
+        header('Location: ' . Http::url('/login') . '?next=' . rawurlencode($_SERVER['REQUEST_URI'] ?? Http::url('/')), true, 302);
         exit;
     }
 }
@@ -87,7 +93,7 @@ if (Config::load() === null) {
     if ($isApi) {
         throw new HttpError(503, 'Panel nie jest jeszcze zainstalowany – otwórz /install.');
     }
-    header('Location: /install', true, 302);
+    header('Location: ' . Http::url('/install'), true, 302);
     exit;
 }
 
@@ -106,7 +112,7 @@ if ($method === 'GET' || $method === 'HEAD') {
             page('editor.html');
         case '/login':
             if (Auth::user()) {
-                header('Location: /', true, 302);
+                header('Location: ' . Http::url('/'), true, 302);
                 exit;
             }
             page('login.html');

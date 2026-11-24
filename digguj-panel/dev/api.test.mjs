@@ -22,7 +22,8 @@ async function req(method, url, { body, form, headers = {}, csrf = true } = {}) 
   else if (body !== undefined) { h['Content-Type'] = 'application/json'; payload = JSON.stringify(body); }
   // Tak jak przeglądarka: PUT/DELETE jako POST z nagłówkiem
   if (method === 'PUT' || method === 'DELETE') { h['X-HTTP-Method-Override'] = method; method = 'POST'; }
-  const res = await fetch(BASE + url, { method, headers: h, body: payload, redirect: 'manual' });
+  // Adresy z API (np. miniatury "media/…") są względne – liczone od folderu panelu
+  const res = await fetch(url.startsWith('/') ? BASE + url : `${BASE}/${url}`, { method, headers: h, body: payload, redirect: 'manual' });
   for (const c of res.headers.getSetCookie?.() ?? []) {
     const [pair] = c.split(';');
     cookie = pair.endsWith('=') ? '' : pair;
@@ -42,7 +43,7 @@ describe('API panelu (PHP)', () => {
   it('bez logowania: strony przekierowują, API zwraca 401, zdjęcia są chronione', async () => {
     const page = await req('GET', '/');
     assert.equal(page.status, 302);
-    assert.match(page.res.headers.get('location'), /^\/login/);
+    assert.ok(page.res.headers.get('location').startsWith(new URL(BASE).pathname.replace(/\/$/, '') + '/login'));
     assert.equal((await req('GET', '/api/posts')).status, 401);
     assert.equal((await req('GET', '/media/00000000-0000-4000-8000-000000000000')).status, 401);
   });

@@ -32,7 +32,7 @@ const setRadio = (name, value) => {
   const el = document.querySelector(`input[name="${name}"][value="${value}"]`);
   if (el) el.checked = true;
 };
-const mediaUrl = (id) => (id ? `/media/${id}` : null);
+const mediaUrl = (id) => (id ? `media/${id}` : null);
 const emptySlide = () => ({ text: '', mediaId: null, panX: 0, panY: 0, imgObj: null });
 const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
 
@@ -319,7 +319,7 @@ async function uploadImage(file, zone) {
   try {
     const form = new FormData();
     form.append('file', await prepareUpload(file));
-    const { media } = await api('/api/media', { method: 'POST', form });
+    const { media } = await api('api/media', { method: 'POST', form });
     const img = await loadImage(media.url);
     if (!img) throw new Error('Nie udało się wczytać przesłanego obrazu.');
     return { id: media.id, img };
@@ -445,7 +445,7 @@ async function saveNow() {
   try {
     const payload = buildPayload();
     payload.thumbnail = makeThumbnail();
-    const { post } = await api(`/api/posts/${postId}`, { method: 'PUT', body: payload });
+    const { post } = await api(`api/posts/${postId}`, { method: 'PUT', body: payload });
     version = post.version;
     lastSavedAt = post.updatedAt;
     setSaveStatus(save.dirty ? 'unsaved' : 'saved');
@@ -472,7 +472,7 @@ function forceSave() {
 
 async function overwriteAfterConflict() {
   try {
-    const { post } = await api(`/api/posts/${postId}`);
+    const { post } = await api(`api/posts/${postId}`);
     version = post.version;
     save.conflict = false;
     $('conflictBanner').hidden = true;
@@ -485,8 +485,8 @@ async function overwriteAfterConflict() {
 // ─────────────────────────────── Wczytanie posta ───────────────────────────────
 async function loadPost() {
   const [{ post }, settings] = await Promise.all([
-    api(`/api/posts/${postId}`),
-    api('/api/settings/ctaDefaults').catch(() => ({ value: null })),
+    api(`api/posts/${postId}`),
+    api('api/settings/ctaDefaults').catch(() => ({ value: null })),
   ]);
   ctaDefaults = settings.value || {};
   const data = post.data || {};
@@ -520,8 +520,8 @@ async function loadPost() {
 
 function loadLogos() {
   return Promise.all([
-    loadImage('/assets/logo.png').then((img) => { assets.logoImg = img; }),
-    loadImage('/assets/digguj-fakty.png').then((img) => { assets.diggujImg = img; }),
+    loadImage('assets/logo.png').then((img) => { assets.logoImg = img; }),
+    loadImage('assets/digguj-fakty.png').then((img) => { assets.diggujImg = img; }),
   ]);
 }
 
@@ -573,7 +573,7 @@ async function saveCtaDefaults() {
   const cfg = readCfg();
   const value = Object.fromEntries(R.CTA_FIELDS.map((k) => [k, cfg[k]]));
   try {
-    ctaDefaults = (await api('/api/settings/ctaDefaults', { method: 'PUT', body: { value } })).value;
+    ctaDefaults = (await api('api/settings/ctaDefaults', { method: 'PUT', body: { value } })).value;
     toast('Zapisano – nowe posty dostaną te teksty CTA.', 'ok');
   } catch (err) {
     toast(err.message, 'error');
@@ -752,7 +752,7 @@ function bindEvents() {
 // ─────────────────────────────── Start ───────────────────────────────
 async function init() {
   if (!Number.isInteger(postId) || postId <= 0) {
-    location.replace('/');
+    location.replace('./');
     return;
   }
   hideBrokenImages();
@@ -765,7 +765,7 @@ async function init() {
   } catch (err) {
     if (err.status === 404) {
       alert('Nie znaleziono posta – mógł zostać usunięty.');
-      location.replace('/');
+      location.replace('./');
       return;
     }
     $('canvasContainer').textContent = `Nie udało się wczytać posta: ${err.message}`;

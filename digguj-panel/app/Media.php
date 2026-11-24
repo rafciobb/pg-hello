@@ -19,7 +19,7 @@ final class Media
 
     public static function url(?string $id): ?string
     {
-        return $id ? '/media/' . $id : null;
+        return $id ? 'media/' . $id : null; // względny – działa także w podfolderze
     }
 
     /** Typ obrazu rozpoznany po "magicznych bajtach" – nie ufamy rozszerzeniu ani nagłówkom od klienta. */

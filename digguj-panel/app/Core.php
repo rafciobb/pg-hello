@@ -194,10 +194,31 @@ final class Http
         return $m;
     }
 
+    /**
+     * Folder, w którym działa panel: '' gdy w głównym katalogu adresu (panel.domena.pl/),
+     * '/digguj' gdy w podfolderze (domena.pl/digguj/). Wykrywany automatycznie z położenia index.php.
+     */
+    public static function base(): string
+    {
+        static $base = null;
+        return $base ??= rtrim(str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME'] ?? '/index.php')), '/.');
+    }
+
+    /** Adres strony panelu z uwzględnieniem folderu, np. url('/login') → '/digguj/login'. */
+    public static function url(string $path): string
+    {
+        return self::base() . $path;
+    }
+
+    /** Ścieżka żądania względem folderu panelu, np. '/digguj/editor' → '/editor'. */
     public static function path(): string
     {
-        $path = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/';
-        return '/' . ltrim(rawurldecode($path), '/');
+        $path = '/' . ltrim(rawurldecode(parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/'), '/');
+        $base = self::base();
+        if ($base !== '' && str_starts_with($path . '/', $base . '/')) {
+            $path = substr($path, strlen($base));
+        }
+        return $path === '' ? '' : '/' . ltrim($path, '/');
     }
 
     public static function securityHeaders(): void
